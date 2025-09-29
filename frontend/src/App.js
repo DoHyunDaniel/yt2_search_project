@@ -352,8 +352,8 @@ function App() {
                 query={query}
                 setQuery={setQuery}
                 selectedAlgorithm={selectedAlgorithm}
-                setSelectedAlgorithm={handleAlgorithmChange}
-                handleSearch={handleSearch}
+                onAlgorithmChange={handleAlgorithmChange}
+                onSearch={handleSearch}
                 loading={loading}
               />
 

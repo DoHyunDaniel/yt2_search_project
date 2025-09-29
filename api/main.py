@@ -830,7 +830,7 @@ def get_trend_data(cur, period: str = "month") -> List[TrendData]:
 # =============================================================================
 
 def get_content_based_recommendations(cur, video_id: str, limit: int = 5) -> List[RecommendationResponse]:
-    """콘텐츠 기반 추천"""
+    """콘텐츠 기반 추천 (기존 데이터베이스 방식)"""
     # 1. 기준 비디오 정보 조회
     base_query = """
     SELECT title, description, tags
@@ -891,6 +891,113 @@ def get_content_based_recommendations(cur, video_id: str, limit: int = 5) -> Lis
             ))
     
     return recommendations
+
+def get_youtube_video_info(video_id: str) -> dict:
+    """YouTube API를 통해 비디오 정보 조회"""
+    try:
+        from googleapiclient.discovery import build
+        
+        # YouTube API 클라이언트 생성
+        youtube = build('youtube', 'v3', developerKey=os.getenv('YOUTUBE_API_KEY'))
+        
+        # 비디오 정보 조회
+        request = youtube.videos().list(
+            part='snippet,statistics',
+            id=video_id
+        )
+        response = request.execute()
+        
+        if not response['items']:
+            return None
+            
+        video = response['items'][0]
+        snippet = video['snippet']
+        statistics = video['statistics']
+        
+        return {
+            'video_id': video_id,
+            'title': snippet['title'],
+            'description': snippet['description'],
+            'channel_title': snippet['channelTitle'],
+            'published_at': snippet['publishedAt'],
+            'thumbnails': snippet['thumbnails'],
+            'view_count': int(statistics.get('viewCount', 0)),
+            'like_count': int(statistics.get('likeCount', 0)),
+            'comment_count': int(statistics.get('commentCount', 0)),
+            'tags': snippet.get('tags', [])
+        }
+        
+    except Exception as e:
+        logger.error(f"YouTube API 오류: {e}")
+        if "quotaExceeded" in str(e) or "403" in str(e):
+            raise HTTPException(status_code=429, detail="YouTube API 할당량이 초과되었습니다. 잠시 후 다시 시도해주세요.")
+        else:
+            raise HTTPException(status_code=500, detail=f"YouTube API 오류: {str(e)}")
+
+def get_content_based_recommendations_with_youtube_api(cur, video_id: str, limit: int = 5) -> List[RecommendationResponse]:
+    """YouTube API를 활용한 콘텐츠 기반 추천"""
+    try:
+        # 1. YouTube API로 비디오 정보 조회
+        youtube_video = get_youtube_video_info(video_id)
+        if not youtube_video:
+            raise HTTPException(status_code=404, detail="해당 YouTube 비디오를 찾을 수 없습니다.")
+        
+        # 2. 데이터베이스의 모든 비디오 정보 조회
+        all_query = """
+        SELECT v.video_yid, v.title, v.description, v.tags, c.title as channel_name,
+               v.statistics->>'view_count' as view_count,
+               v.statistics->>'like_count' as like_count,
+               v.published_at,
+               v.thumbnails->'default'->>'url' as thumbnail_url
+        FROM yt2.videos v
+        JOIN yt2.channels c ON v.channel_id = c.id
+        """
+        cur.execute(all_query)
+        all_videos = cur.fetchall()
+        
+        if not all_videos:
+            return []
+        
+        # 3. YouTube 비디오와 데이터베이스 비디오들을 TF-IDF로 비교
+        youtube_text = f"{youtube_video['title']} {youtube_video['description']} {' '.join(youtube_video['tags'])}"
+        db_texts = [f"{row[1]} {row[2]} {' '.join(row[3] or [])}" for row in all_videos]
+        
+        # 4. TF-IDF 벡터화
+        vectorizer = TfidfVectorizer(max_features=1000, ngram_range=(1, 2))
+        all_texts = [youtube_text] + db_texts
+        tfidf_matrix = vectorizer.fit_transform(all_texts)
+        
+        # 5. 유사도 계산
+        youtube_vector = tfidf_matrix[0:1]
+        db_vectors = tfidf_matrix[1:]
+        similarities = cosine_similarity(youtube_vector, db_vectors).flatten()
+        
+        # 6. 상위 결과 선택
+        top_indices = similarities.argsort()[-limit:][::-1]
+        
+        recommendations = []
+        for idx in top_indices:
+            if similarities[idx] > 0.1:  # 임계값 설정
+                video = all_videos[idx]
+                recommendations.append(RecommendationResponse(
+                    video_id=video[0],
+                    title=video[1],
+                    channel_name=video[4],
+                    thumbnail_url=video[8] or "",
+                    view_count=int(video[5] or 0),
+                    like_count=int(video[6] or 0),
+                    published_at=video[7].isoformat() if video[7] else "",
+                    similarity_score=round(similarities[idx], 3),
+                    recommendation_reason=f"'{youtube_video['title']}'와 유사한 콘텐츠입니다"
+                ))
+        
+        return recommendations
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"콘텐츠 기반 추천 오류: {e}")
+        raise HTTPException(status_code=500, detail=f"추천 생성 중 오류가 발생했습니다: {str(e)}")
 
 def get_popularity_based_recommendations(cur, limit: int = 5) -> List[RecommendationResponse]:
     """인기도 기반 추천"""
@@ -965,7 +1072,7 @@ def get_trending_recommendations(cur, limit: int = 5) -> List[RecommendationResp
             view_count=int(row[3] or 0),
             like_count=int(row[4] or 0),
             published_at=row[5].isoformat() if row[5] else "",
-            similarity_score=round(1.0 / (1.0 + row[7]), 3),  # 최신일수록 높은 점수
+            similarity_score=round(1.0 / (1.0 + float(row[7] or 0)), 3),  # decimal.Decimal을 float로 변환
             recommendation_reason="최신 콘텐츠입니다"
         )
         for row in results
@@ -1463,7 +1570,7 @@ async def get_content_based_recommendations_api(
     video_id: str = Query(..., description="기준 비디오 ID"),
     limit: int = Query(5, ge=1, le=20, description="추천 수 제한")
 ):
-    """콘텐츠 기반 추천"""
+    """콘텐츠 기반 추천 (기존 데이터베이스 방식)"""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -1471,6 +1578,22 @@ async def get_content_based_recommendations_api(
     except Exception as e:
         logger.error(f"콘텐츠 기반 추천 실패: {e}")
         raise HTTPException(status_code=500, detail=f"콘텐츠 기반 추천 실패: {str(e)}")
+
+@app.get("/api/recommendations/content-based-youtube", response_model=List[RecommendationResponse])
+async def get_content_based_recommendations_youtube_api(
+    video_id: str = Query(..., description="YouTube 비디오 ID"),
+    limit: int = Query(5, ge=1, le=20, description="추천 수 제한")
+):
+    """YouTube API를 활용한 콘텐츠 기반 추천"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                return get_content_based_recommendations_with_youtube_api(cur, video_id, limit)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"YouTube API 콘텐츠 기반 추천 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"YouTube API 콘텐츠 기반 추천 실패: {str(e)}")
 
 @app.get("/api/recommendations/popularity", response_model=List[RecommendationResponse])
 async def get_popularity_recommendations_api(

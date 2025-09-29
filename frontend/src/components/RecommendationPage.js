@@ -147,6 +147,12 @@ const ThumbnailImg = styled.img`
   object-fit: cover;
 `;
 
+// YouTube 썸네일 URL 생성 함수
+const getYouTubeThumbnail = (videoId) => {
+  if (!videoId) return null;
+  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+};
+
 const PlayButton = styled.div`
   position: absolute;
   top: 50%;
@@ -322,10 +328,10 @@ function RecommendationPage() {
           break;
         case 'content':
           if (!videoId) {
-            setError('콘텐츠 기반 추천을 위해서는 비디오 ID가 필요합니다.');
+            setError('콘텐츠 기반 추천을 위해서는 YouTube 비디오 ID가 필요합니다.');
             return;
           }
-          endpoint = '/api/recommendations/content-based';
+          endpoint = '/api/recommendations/content-based-youtube';
           params.video_id = videoId;
           break;
         default:
@@ -335,7 +341,16 @@ function RecommendationPage() {
       const response = await api.get(endpoint, { params });
       setRecommendations(response.data);
     } catch (err) {
-      setError('추천 데이터를 불러오는데 실패했습니다.');
+      // YouTube API 할당량 초과 오류 처리
+      if (err.response?.status === 429) {
+        setError('YouTube API 할당량이 초과되어 콘텐츠 기반 검색이 불가능합니다.');
+      } else if (err.response?.status === 404) {
+        setError('해당 YouTube 비디오를 찾을 수 없습니다. 올바른 비디오 ID를 입력해주세요.');
+      } else if (err.response?.status === 500 && err.response?.data?.detail?.includes('YouTube API')) {
+        setError('YouTube API 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      } else {
+        setError('추천 데이터를 불러오는데 실패했습니다.');
+      }
       console.error('Recommendation fetch error:', err);
     } finally {
       setLoading(false);
@@ -436,28 +451,35 @@ function RecommendationPage() {
                 whileHover={{ scale: 1.02 }}
               >
                 <VideoThumbnail>
-                  {video.thumbnail_url ? (
-                    <ThumbnailImg
-                      src={video.thumbnail_url}
-                      alt={video.title}
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div style={{ 
+                  <ThumbnailImg
+                    src={getYouTubeThumbnail(video.video_id)}
+                    alt={video.title}
+                    onError={(e) => {
+                      // 썸네일 로드 실패 시 기본 아이콘 표시
+                      e.target.style.display = 'none';
+                      const parent = e.target.parentElement;
+                      const fallback = parent.querySelector('.thumbnail-fallback');
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div 
+                    className="thumbnail-fallback"
+                    style={{ 
                       width: '100%', 
                       height: '100%', 
                       background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                      display: 'flex',
+                      display: 'none',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: 'white',
-                      fontSize: '2rem'
-                    }}>
-                      🎬
-                    </div>
-                  )}
+                      fontSize: '2rem',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0
+                    }}
+                  >
+                    🎬
+                  </div>
                   <PlayButton onClick={() => openYouTube(video.video_id)}>
                     <FaPlay />
                   </PlayButton>

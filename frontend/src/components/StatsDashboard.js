@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaChartLine, FaUsers, FaVideo, FaEye, FaThumbsUp, FaComments, FaTrendingUp } from 'react-icons/fa';
+import { FaChartLine, FaUsers, FaVideo, FaEye, FaThumbsUp, FaComments, FaFire } from 'react-icons/fa';
 import { api } from '../services/api';
 
 const DashboardContainer = styled.div`
@@ -86,6 +86,12 @@ const VideoThumbnail = styled.img`
   border-radius: 8px;
   margin-bottom: 15px;
 `;
+
+// YouTube 썸네일 URL 생성 함수
+const getYouTubeThumbnail = (videoId) => {
+  if (!videoId) return null;
+  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+};
 
 const VideoTitle = styled.h4`
   font-size: 1.1rem;
@@ -270,7 +276,7 @@ function StatsDashboard() {
 
         {/* 인기 비디오 */}
         <SectionTitle>
-          <FaTrendingUp /> 인기 비디오 TOP 6
+          <FaFire /> 인기 비디오 TOP 6
         </SectionTitle>
         <VideoList>
           {popularVideos.map((video, index) => (
@@ -281,15 +287,34 @@ function StatsDashboard() {
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.02 }}
             >
-              {video.thumbnail_url && (
-                <VideoThumbnail
-                  src={video.thumbnail_url}
-                  alt={video.title}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-              )}
+              <VideoThumbnail
+                src={getYouTubeThumbnail(video.video_id)}
+                alt={video.title}
+                onError={(e) => {
+                  // 썸네일 로드 실패 시 기본 아이콘 표시
+                  e.target.style.display = 'none';
+                  const parent = e.target.parentElement;
+                  const fallback = parent.querySelector('.thumbnail-fallback');
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+              <div 
+                className="thumbnail-fallback"
+                style={{ 
+                  width: '100%', 
+                  height: '180px', 
+                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                  display: 'none',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '2rem',
+                  borderRadius: '8px',
+                  marginBottom: '15px'
+                }}
+              >
+                🎬
+              </div>
               <VideoTitle>{video.title}</VideoTitle>
               <VideoChannel>{video.channel_name}</VideoChannel>
               <VideoStats>

@@ -104,4 +104,7 @@ export const getStats = async () => {
   }
 };
 
+// API 클라이언트를 api로도 export
+export const api = apiClient;
+
 export default apiClient;

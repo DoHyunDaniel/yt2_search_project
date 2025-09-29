@@ -110,13 +110,18 @@ class YT2Crawler:
         self.daily_quota = 10000  # 일일 할당량
         self.quota_used = 0
         self.last_reset = datetime.now().date()
+        self.quota_exceeded = False  # 할당량 초과 플래그
     
     def check_quota(self) -> bool:
         """API 할당량 확인"""
+        if self.quota_exceeded:
+            return False
+            
         today = datetime.now().date()
         if today != self.last_reset:
             self.quota_used = 0
             self.last_reset = today
+            self.quota_exceeded = False  # 날짜가 바뀌면 플래그 리셋
         
         return self.quota_used < self.daily_quota
     
@@ -156,6 +161,7 @@ class YT2Crawler:
         except HttpError as e:
             if e.resp.status == 403:
                 logger.error("YouTube API 할당량 초과")
+                self.quota_exceeded = True
             else:
                 logger.error(f"YouTube API 오류: {e}")
             return []
@@ -236,6 +242,7 @@ class YT2Crawler:
         except HttpError as e:
             if e.resp.status == 403:
                 logger.error("YouTube API 할당량 초과")
+                self.quota_exceeded = True
             else:
                 logger.error(f"영상 상세 정보 수집 실패: {e}")
             return None
@@ -297,6 +304,7 @@ class YT2Crawler:
         except HttpError as e:
             if e.resp.status == 403:
                 logger.error("YouTube API 할당량 초과")
+                self.quota_exceeded = True
             else:
                 logger.error(f"채널 정보 수집 실패: {e}")
             return None
@@ -356,6 +364,7 @@ class YT2Crawler:
         except HttpError as e:
             if e.resp.status == 403:
                 logger.error("YouTube API 할당량 초과")
+                self.quota_exceeded = True
             else:
                 logger.error(f"댓글 수집 실패: {e}")
             return []
@@ -399,6 +408,7 @@ class YT2Crawler:
         except HttpError as e:
             if e.resp.status == 403:
                 logger.error("YouTube API 할당량 초과")
+                self.quota_exceeded = True
             else:
                 logger.error(f"자막 수집 실패: {e}")
             return []
@@ -444,6 +454,7 @@ class YT2Crawler:
         except HttpError as e:
             if e.resp.status == 403:
                 logger.error("YouTube API 할당량 초과")
+                self.quota_exceeded = True
             else:
                 logger.error(f"재생목록 수집 실패: {e}")
             return []
@@ -486,6 +497,7 @@ class YT2Crawler:
         except HttpError as e:
             if e.resp.status == 403:
                 logger.error("YouTube API 할당량 초과")
+                self.quota_exceeded = True
             else:
                 logger.error(f"재생목록 아이템 수집 실패: {e}")
             return []
@@ -522,6 +534,7 @@ class YT2Crawler:
         except HttpError as e:
             if e.resp.status == 403:
                 logger.error("YouTube API 할당량 초과")
+                self.quota_exceeded = True
             else:
                 logger.error(f"영상 카테고리 수집 실패: {e}")
             return []
@@ -869,9 +882,19 @@ class YT2Crawler:
             logger.info(f"영상 카테고리 {len(categories)}개 저장 완료")
         
         for keyword in self.keywords:
+            # 키워드 처리 전 할당량 확인
+            if not self.check_quota():
+                logger.warning("API 할당량 초과로 크롤링 중단")
+                break
+                
             logger.info(f"키워드 크롤링: {keyword}")
             
             videos = self.search_videos(keyword, max_results_per_keyword, days)
+            
+            # 할당량 초과로 검색이 실패한 경우 중단
+            if self.quota_exceeded:
+                logger.warning("API 할당량 초과로 크롤링 중단")
+                break
             
             for video in videos:
                 # 데이터베이스 저장
