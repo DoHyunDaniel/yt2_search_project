@@ -371,6 +371,8 @@ function App() {
                     totalResults={totalResults}
                     currentPage={searchPage}
                     selectedAlgorithm={selectedAlgorithm}
+                    searchTime={searchTime}
+                    aiInsight={results.length > 0 ? (results[0]?.ai_insight || null) : null}
                   />
                   {totalPages > 1 && (
                     <Pagination

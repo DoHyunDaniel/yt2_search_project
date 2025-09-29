@@ -104,6 +104,7 @@ services:
       - OS_PASSWORD=App1234!@#
       - OS_INDEX=videos
       - YOUTUBE_API_KEY=AIzaSyAE4ODDmhQ6eSN-BIDqDP7uVMl7-tRCCjU
+      - OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
       - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
       - REDIS_HOST=yt2-redis
       - REDIS_PORT=6379

@@ -26,12 +26,18 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 # from sentence_transformers import SentenceTransformer  # 의존성 문제로 임시 비활성화
 
+# OpenAI 라이브러리
+import openai
+
 # 환경변수 로딩
 load_dotenv()
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# OpenAI 클라이언트 초기화
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -102,6 +108,7 @@ class SearchResponse(BaseModel):
     total_pages: int
     query: str
     search_time: float
+    ai_insight: Optional[str] = None
 
 class StatsResponse(BaseModel):
     total_channels: int
@@ -650,6 +657,127 @@ def execute_search_algorithm(algorithm: str, cur, search_term: str, limit: int, 
     logger.info(f"검색 알고리즘 실행: {algorithm}")
     
     return search_func(cur, search_term, limit, offset)
+
+# =============================================================================
+# 🤖 AI STATISTICS & RECOMMENDATION MODELS
+# =============================================================================
+
+# =============================================================================
+# 🧠 OPENAI AI FUNCTIONS
+# =============================================================================
+
+def generate_search_insight(search_term: str, video_titles: List[str], video_descriptions: List[str]) -> str:
+    """검색 결과에 대한 AI 인사이트 생성 (비용 최적화)"""
+    try:
+        if not video_titles or not openai.api_key:
+            return "검색 결과를 분석할 수 없습니다."
+        
+        # 상위 5개 제목만 사용하여 토큰 절약
+        content_text = " ".join(video_titles[:5])
+        
+        prompt = f"'{search_term}' 검색 결과: {content_text}\n\n이 검색어의 콘텐츠 유형을 1문장으로 분석해주세요."
+        
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=30,  # 토큰 수 대폭 감소
+            temperature=0.7
+        )
+        
+        return response.choices[0].message.content.strip()
+        
+    except Exception as e:
+        logger.error(f"AI 인사이트 생성 실패: {e}")
+        return "검색 결과를 분석할 수 없습니다."
+
+def generate_video_description(video_title: str, video_description: str = "", channel_name: str = "", video_id: str = None) -> str:
+    """비디오에 대한 AI 설명 생성 (캐싱 + 비용 최적화)"""
+    try:
+        if not openai.api_key:
+            return "AI 설명을 생성할 수 없습니다."
+        
+        # 캐싱 시스템: Redis에서 캐시 확인
+        if video_id:
+            cache_key = f"ai_description:{video_id}"
+            cached_result = REDIS_CLIENT.get(cache_key)
+            if cached_result:
+                logger.info(f"캐시에서 AI 설명 반환: {video_id}")
+                # Redis 결과가 bytes인 경우와 str인 경우 모두 처리
+                if isinstance(cached_result, bytes):
+                    return cached_result.decode('utf-8')
+                else:
+                    return cached_result
+        
+        # 더 짧고 효율적인 프롬프트 사용
+        prompt = f"제목: {video_title}\n채널: {channel_name}\n\n이 비디오를 1문장으로 요약해주세요."
+        
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=50,  # 토큰 수 대폭 감소
+            temperature=0.7
+        )
+        
+        result = response.choices[0].message.content.strip()
+        
+        # 캐싱 시스템: 결과를 Redis에 저장 (24시간)
+        if video_id:
+            REDIS_CLIENT.setex(cache_key, 86400, result)  # 24시간 캐시
+            logger.info(f"AI 설명 캐시 저장: {video_id}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"AI 비디오 설명 생성 실패: {e}")
+        return "AI 설명을 생성할 수 없습니다."
+
+def batch_generate_video_descriptions(video_list: List[Dict]) -> Dict[str, str]:
+    """배치 처리로 여러 비디오 설명을 한 번에 생성"""
+    try:
+        if not openai.api_key or not video_list:
+            return {}
+        
+        # 배치 프롬프트 생성
+        batch_prompt = "다음 YouTube 비디오들을 각각 1문장으로 요약해주세요:\n\n"
+        for i, video in enumerate(video_list):
+            batch_prompt += f"{i+1}. 제목: {video['title']}\n   채널: {video['channel_name']}\n\n"
+        
+        batch_prompt += "각 비디오마다 한 줄씩 요약해주세요."
+        
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "user", "content": batch_prompt}
+            ],
+            max_tokens=len(video_list) * 30,  # 비디오 수에 비례하여 토큰 할당
+            temperature=0.7
+        )
+        
+        # 결과 파싱
+        result_text = response.choices[0].message.content.strip()
+        descriptions = {}
+        
+        # 각 줄을 파싱하여 비디오 ID와 매칭
+        lines = result_text.split('\n')
+        for i, line in enumerate(lines):
+            if i < len(video_list) and line.strip():
+                video_id = video_list[i]['id']
+                descriptions[video_id] = line.strip()
+                
+                # 개별 캐시 저장
+                cache_key = f"ai_description:{video_id}"
+                REDIS_CLIENT.setex(cache_key, 86400, line.strip())
+        
+        logger.info(f"배치 AI 설명 생성 완료: {len(descriptions)}개")
+        return descriptions
+        
+    except Exception as e:
+        logger.error(f"배치 AI 설명 생성 실패: {e}")
+        return {}
 
 # =============================================================================
 # 🤖 AI STATISTICS & RECOMMENDATION MODELS
@@ -1205,12 +1333,20 @@ async def search_videos(
                 search_time = (datetime.now() - start_time).total_seconds()
                 total_pages = (total_count + limit - 1) // limit  # 올림 계산
                 
+                # AI 인사이트 생성
+                ai_insight = None
+                if video_responses:
+                    video_titles = [video.title for video in video_responses]
+                    video_descriptions = [video.description for video in video_responses if video.description]
+                    ai_insight = generate_search_insight(q, video_titles, video_descriptions)
+                
                 result = SearchResponse(
                     videos=video_responses,
                     total_count=total_count,
                     total_pages=total_pages,
                     query=q,
-                    search_time=search_time
+                    search_time=search_time,
+                    ai_insight=ai_insight
                 )
                 
                 # 캐시 저장 (5분)
@@ -1224,6 +1360,85 @@ async def search_videos(
     except Exception as e:
         logger.error(f"검색 실패: {e}")
         raise HTTPException(status_code=500, detail=f"검색 실패: {str(e)}")
+
+@app.get("/api/videos/{video_id}/ai-description")
+async def get_video_ai_description(video_id: str):
+    """비디오 AI 설명 생성"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                # 비디오 정보 조회
+                cur.execute("""
+                    SELECT v.title, v.description, c.title as channel_name
+                    FROM yt2.videos v
+                    JOIN yt2.channels c ON v.channel_id = c.id
+                    WHERE v.video_yid = %s
+                """, (video_id,))
+                
+                video = cur.fetchone()
+                if not video:
+                    raise HTTPException(status_code=404, detail="비디오를 찾을 수 없습니다.")
+                
+                # AI 설명 생성 (video_id 포함)
+                ai_description = generate_video_description(
+                    video['title'],
+                    video['description'] or "",
+                    video['channel_name'],
+                    video_id
+                )
+                
+                return {
+                    "video_id": video_id,
+                    "title": video['title'],
+                    "channel_name": video['channel_name'],
+                    "ai_description": ai_description
+                }
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"AI 설명 생성 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"AI 설명 생성 실패: {str(e)}")
+
+@app.post("/api/videos/batch-ai-descriptions")
+async def batch_generate_ai_descriptions(request: dict):
+    """여러 비디오의 AI 설명을 배치로 생성"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                # 요청에서 video_ids 추출
+                video_ids = request.get('video_ids', [])
+                if not video_ids:
+                    raise HTTPException(status_code=400, detail="video_ids가 필요합니다.")
+                
+                # 비디오 정보 조회
+                placeholders = ','.join(['%s'] * len(video_ids))
+                cur.execute(f"""
+                    SELECT v.video_yid as id, v.title, v.description, c.title as channel_name
+                    FROM yt2.videos v
+                    JOIN yt2.channels c ON v.channel_id = c.id
+                    WHERE v.video_yid IN ({placeholders})
+                """, video_ids)
+                
+                videos = cur.fetchall()
+                if not videos:
+                    raise HTTPException(status_code=404, detail="비디오를 찾을 수 없습니다.")
+                
+                # 배치 AI 설명 생성
+                video_list = [dict(video) for video in videos]
+                descriptions = batch_generate_video_descriptions(video_list)
+                
+                return {
+                    "total_videos": len(videos),
+                    "generated_descriptions": len(descriptions),
+                    "descriptions": descriptions
+                }
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"배치 AI 설명 생성 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"배치 AI 설명 생성 실패: {str(e)}")
 
 @app.get("/videos/{video_id}")
 async def get_video_detail(video_id: str):

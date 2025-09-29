@@ -104,6 +104,17 @@ export const getStats = async () => {
   }
 };
 
+// AI 설명 API
+export const getVideoAIDescription = async (videoId) => {
+  try {
+    const response = await apiClient.get(`/api/videos/${videoId}/ai-description`);
+    return response.data;
+  } catch (error) {
+    console.error('AI Description API Error:', error);
+    throw error;
+  }
+};
+
 // API 클라이언트를 api로도 export
 export const api = apiClient;
 

@@ -1,12 +1,101 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaYoutube, FaEye, FaThumbsUp, FaComment, FaCalendarAlt } from 'react-icons/fa';
+import { FaYoutube, FaEye, FaThumbsUp, FaComment, FaCalendarAlt, FaRobot, FaTimes } from 'react-icons/fa';
 import { formatNumber, formatDate, truncateText, getYouTubeThumbnail, getYouTubeUrl } from '../utils/formatters';
 import { SEARCH_ALGORITHMS, THEME_COLORS, ANIMATION } from '../utils/constants';
+import { getVideoAIDescription } from '../services/api';
 
 const ResultsContainer = styled(motion.div)`
   margin-top: 30px;
+`;
+
+const AIInsight = styled(motion.div)`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1rem;
+  line-height: 1.5;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+`;
+
+const AIInsightIcon = styled.div`
+  font-size: 1.5rem;
+  flex-shrink: 0;
+`;
+
+const AIInsightText = styled.div`
+  flex: 1;
+`;
+
+const AIButton = styled(motion.button)`
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all ${ANIMATION.DURATION}ms ${ANIMATION.EASING};
+  box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+`;
+
+const AIDescription = styled(motion.div)`
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 15px;
+  position: relative;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: ${THEME_COLORS.text.primary};
+`;
+
+const AIDescriptionClose = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all ${ANIMATION.DURATION}ms ${ANIMATION.EASING};
+
+  &:hover {
+    background: #e9ecef;
+    color: #333;
+  }
 `;
 
 const ResultsHeader = styled.div`
@@ -217,9 +306,36 @@ const SearchResults = ({
   currentPage, 
   totalPages, 
   selectedAlgorithm, 
-  searchTime 
+  searchTime,
+  aiInsight 
 }) => {
   const selectedAlgo = SEARCH_ALGORITHMS.find(algo => algo.value === selectedAlgorithm);
+  const [aiDescriptions, setAiDescriptions] = useState({});
+  const [loadingDescriptions, setLoadingDescriptions] = useState({});
+
+  const handleAIDescription = async (videoId) => {
+    if (aiDescriptions[videoId] || loadingDescriptions[videoId]) return;
+    
+    setLoadingDescriptions(prev => ({ ...prev, [videoId]: true }));
+    
+    try {
+      const response = await getVideoAIDescription(videoId);
+      setAiDescriptions(prev => ({ ...prev, [videoId]: response.ai_description }));
+    } catch (error) {
+      console.error('AI 설명 생성 실패:', error);
+      setAiDescriptions(prev => ({ ...prev, [videoId]: 'AI 설명을 생성할 수 없습니다.' }));
+    } finally {
+      setLoadingDescriptions(prev => ({ ...prev, [videoId]: false }));
+    }
+  };
+
+  const closeAIDescription = (videoId) => {
+    setAiDescriptions(prev => {
+      const newDescriptions = { ...prev };
+      delete newDescriptions[videoId];
+      return newDescriptions;
+    });
+  };
 
   if (loading) {
     return (
@@ -252,6 +368,21 @@ const SearchResults = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
+      {aiInsight && (
+        <AIInsight
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <AIInsightIcon>
+            <FaRobot />
+          </AIInsightIcon>
+          <AIInsightText>
+            {aiInsight}
+          </AIInsightText>
+        </AIInsight>
+      )}
+
       <ResultsHeader>
         <ResultsCount>
           총 {formatNumber(totalResults)}개의 결과 중 {((currentPage - 1) * 5) + 1}-{Math.min(currentPage * 5, totalResults)}번째
@@ -327,6 +458,32 @@ const SearchResults = ({
               <ChannelInfo>
                 <strong>채널:</strong> {video.channel_name}
               </ChannelInfo>
+
+              <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'center' }}>
+                <AIButton
+                  onClick={() => handleAIDescription(video.id)}
+                  disabled={loadingDescriptions[video.id]}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <FaRobot />
+                  {loadingDescriptions[video.id] ? 'AI 분석 중...' : 'AI 설명 보기'}
+                </AIButton>
+              </div>
+
+              {aiDescriptions[video.id] && (
+                <AIDescription
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AIDescriptionClose onClick={() => closeAIDescription(video.id)}>
+                    <FaTimes />
+                  </AIDescriptionClose>
+                  <strong>🤖 AI 분석:</strong> {aiDescriptions[video.id]}
+                </AIDescription>
+              )}
             </VideoContent>
           </VideoCard>
         ))}
