@@ -2,7 +2,7 @@
 
 > **7가지 검색 알고리즘을 활용한 YouTube 데이터 검색 플랫폼**
 
-수원시 행궁동 관련 YouTube 데이터를 수집하고 다양한 검색 알고리즘으로 검색하는 고성능 시스템입니다. 기본 검색부터 TF-IDF, BM25, 하이브리드, 의미 기반, 감정 분석까지 7가지 알고리즘을 지원하며, React + FastAPI + PostgreSQL + OpenSearch + Redis로 구성된 현대적인 마이크로서비스 아키텍처를 제공합니다.
+수원시 행궁동 관련 YouTube 데이터를 수집하고 다양한 검색 알고리즘으로 검색하는 고성능 시스템입니다. 기본 검색부터 TF-IDF, BM25, 하이브리드, 의미 기반, 감정 분석까지 7가지 알고리즘을 지원하며, AI 기반 통계 분석과 추천 시스템, 실시간 디바운싱 검색을 포함한 React + FastAPI + PostgreSQL + OpenSearch + Redis로 구성된 현대적인 마이크로서비스 아키텍처를 제공합니다.
 
 ## 📊 프로젝트 개요
 
@@ -14,6 +14,9 @@
 
 ### 📈 **핵심 성과**
 - **7가지 검색 알고리즘** 구현 및 비교 분석
+- **AI 기반 통계 분석** 및 **추천 시스템** 구현
+- **실시간 디바운싱 검색** (800ms)으로 사용자 경험 최적화
+- **YouTube API 통합**으로 실시간 데이터 조회
 - **평균 응답 시간 < 200ms** 달성
 - **캐시 히트율 85%+** 달성
 - **반응형 디자인**으로 모든 디바이스 지원
@@ -41,6 +44,34 @@
 - **Docker & Docker Compose**: 컨테이너화
 - **Nginx**: 웹 서버 및 리버스 프록시
 - **Multi-stage Build**: 최적화된 이미지 빌드
+
+## 🚀 주요 기능
+
+### 🔍 **다양한 검색 알고리즘**
+- **7가지 검색 알고리즘** 지원 (기본, TF-IDF, 가중치, BM25, 하이브리드, 의미 기반, 감정 분석)
+- **실시간 디바운싱 검색** (800ms)으로 불필요한 API 호출 방지
+- **검색 결과 캐싱**으로 응답 속도 최적화
+- **페이지네이션** 지원으로 대용량 데이터 효율적 처리
+
+### 🤖 **AI 기반 통계 및 추천**
+- **통계 대시보드**: 인기 비디오, 채널 분석, 트렌드 분석
+- **콘텐츠 기반 추천**: 유사한 비디오 자동 추천
+- **인기도 기반 추천**: 조회수, 좋아요 기반 추천
+- **트렌드 기반 추천**: 최신 인기 콘텐츠 추천
+- **YouTube API 통합**: 실시간 비디오 정보 조회
+
+### 🎨 **사용자 경험**
+- **반응형 디자인**: 모바일, 태블릿, 데스크톱 지원
+- **직관적인 UI/UX**: Material Design 기반 인터페이스
+- **실시간 검색**: 타이핑과 동시에 검색 결과 업데이트
+- **로딩 상태 표시**: 사용자 피드백을 위한 애니메이션
+- **에러 처리**: 친화적인 오류 메시지 및 복구 가이드
+
+### 🔧 **시스템 관리**
+- **자동 크롤링**: YouTube API 할당량 관리 및 자동 중단
+- **데이터 동기화**: PostgreSQL ↔ OpenSearch 실시간 동기화
+- **모니터링**: 로그 기반 시스템 상태 추적
+- **확장성**: 마이크로서비스 아키텍처로 수평 확장 가능
 
 ## 🔍 검색 알고리즘 상세 분석
 
@@ -441,7 +472,19 @@ docker-compose up -d
 ### **검색 API**
 - `GET /api/search` - 통합 검색 (7가지 알고리즘 지원)
 - `GET /health` - 서버 상태 확인
-- `GET /api/stats` - 시스템 통계
+- `GET /videos/{video_id}` - 비디오 상세 정보
+
+### **AI 통계 API**
+- `GET /api/stats/popular-videos` - 인기 비디오 통계
+- `GET /api/stats/channels` - 채널별 통계
+- `GET /api/stats/trends` - 트렌드 분석
+- `GET /api/stats/overview` - 전체 통계 요약
+
+### **AI 추천 API**
+- `GET /api/recommendations/content-based` - 콘텐츠 기반 추천 (DB)
+- `GET /api/recommendations/content-based-youtube` - 콘텐츠 기반 추천 (YouTube API)
+- `GET /api/recommendations/popularity` - 인기도 기반 추천
+- `GET /api/recommendations/trending` - 트렌드 기반 추천
 
 ### **사용 예시**
 ```bash
@@ -453,6 +496,12 @@ curl "http://localhost:8000/api/search?q=행궁&algorithm=tfidf&limit=5"
 
 # 하이브리드 검색
 curl "http://localhost:8000/api/search?q=행궁&algorithm=hybrid&limit=5"
+
+# AI 통계 조회
+curl "http://localhost:8000/api/stats/popular-videos?limit=10"
+
+# AI 추천 조회
+curl "http://localhost:8000/api/recommendations/popularity?limit=5"
 ```
 
 ## 📈 모니터링

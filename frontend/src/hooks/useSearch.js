@@ -18,6 +18,7 @@ export const useSearch = () => {
   
   const abortControllerRef = useRef(null);
   const cacheRef = useRef(new Map());
+  const debounceTimeoutRef = useRef(null);
 
   // 검색 실행
   const executeSearch = useCallback(async (searchQuery, algorithm, page = 1) => {
@@ -92,8 +93,14 @@ export const useSearch = () => {
     }
   }, []);
 
-  // 검색 실행 (디바운싱)
+  // 디바운싱된 검색 실행
   const search = useCallback((searchQuery, algorithm, page = 1) => {
+    // 이전 타이머 취소
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // 검색어가 너무 짧으면 즉시 초기화
     if (searchQuery.length < SEARCH_CONFIG.MIN_QUERY_LENGTH) {
       setResults([]);
       setTotalPages(0);
@@ -102,7 +109,10 @@ export const useSearch = () => {
       return;
     }
 
-    executeSearch(searchQuery, algorithm, page);
+    // 디바운싱 적용 (800ms 후 검색 실행)
+    debounceTimeoutRef.current = setTimeout(() => {
+      executeSearch(searchQuery, algorithm, page);
+    }, 800);
   }, [executeSearch]);
 
   // 페이지 변경
@@ -132,11 +142,14 @@ export const useSearch = () => {
     }
   }, [selectedAlgorithm, search]);
 
-  // 컴포넌트 언마운트 시 요청 취소
+  // 컴포넌트 언마운트 시 요청 취소 및 타이머 정리
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
+      }
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
       }
     };
   }, []);

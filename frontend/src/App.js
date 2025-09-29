@@ -96,7 +96,9 @@ const NavLinks = styled.div`
   gap: 20px;
 `;
 
-const NavLink = styled.button`
+const NavLink = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'active',
+})`
   background: ${props => props.active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
   border: 2px solid ${props => props.active ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.2)'};
   color: white;
@@ -313,6 +315,7 @@ function App() {
     search,
     changePage,
     changeAlgorithm,
+    changeQuery,
     clearError
   } = useSearch();
 
@@ -350,7 +353,7 @@ function App() {
             <ErrorBoundary>
               <SearchForm
                 query={query}
-                setQuery={setQuery}
+                setQuery={changeQuery}
                 selectedAlgorithm={selectedAlgorithm}
                 onAlgorithmChange={handleAlgorithmChange}
                 onSearch={handleSearch}
@@ -379,7 +382,7 @@ function App() {
                 </>
               )}
 
-              {!loading && !error && results.length === 0 && query && (
+              {!loading && !error && results.length === 0 && query && totalResults === 0 && (
                 <NoResultsMessage
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
