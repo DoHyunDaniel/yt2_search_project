@@ -1,0 +1,204 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # 🗄️ 데이터베이스
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: yt2-pg-prod
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=yt2
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d yt2"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # 🔍 검색 엔진
+  # =============================================================================
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: yt2-opensearch-prod
+    restart: unless-stopped
+    environment:
+      - cluster.name=yt2-cluster
+      - node.name=yt2-node
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # =============================================================================
+  # 🚀 캐시
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: yt2-redis-prod
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # 🐍 API 서버
+  # =============================================================================
+  api:
+    image: ghcr.io/dohyundaniel/yt2_search_project-api:latest
+    container_name: yt2-api-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=yt2
+      - DB_USER=app
+      - DB_PASSWORD=${DB_PASSWORD}
+      - OS_HOST=http://opensearch:9200
+      - OS_USER=admin
+      - OS_PASSWORD=${OS_PASSWORD}
+      - OS_INDEX=videos
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # 🕷️ 크롤러
+  # =============================================================================
+  crawler:
+    image: ghcr.io/dohyundaniel/yt2_search_project-crawler:latest
+    container_name: yt2-crawler-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=yt2
+      - DB_USER=app
+      - DB_PASSWORD=${DB_PASSWORD}
+      - OS_HOST=http://opensearch:9200
+      - OS_USER=admin
+      - OS_PASSWORD=${OS_PASSWORD}
+      - OS_INDEX=videos
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+    volumes:
+      - ./crawler:/app/crawler
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://api:8000/health')"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # 🌐 프론트엔드
+  # =============================================================================
+  frontend:
+    image: ghcr.io/dohyundaniel/yt2_search_project-frontend:latest
+    container_name: yt2-frontend-prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # 📊 모니터링 (선택사항)
+  # =============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: yt2-prometheus-prod
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: yt2-grafana-prod
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    profiles:
+      - monitoring
+
+volumes:
+  postgres_data:
+    driver: local
+  opensearch_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  default:
+    name: yt2-prod-network

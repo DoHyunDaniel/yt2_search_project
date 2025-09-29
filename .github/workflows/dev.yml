@@ -1,0 +1,113 @@
+name: 🛠️ 개발 환경 배포
+
+on:
+  push:
+    branches: [ develop, feature/* ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  # =============================================================================
+  # 🔍 빠른 코드 검사
+  # =============================================================================
+  quick-check:
+    name: ⚡ 빠른 검사
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Python 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: 📦 필수 의존성 설치
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black
+        
+    - name: 🎨 코드 포맷팅 검사
+      run: |
+        black --check api/main.py crawler/crawler.py || true
+        
+    - name: 🔍 기본 린팅
+      run: |
+        flake8 api/main.py crawler/crawler.py --max-line-length=127 || true
+
+  # =============================================================================
+  # 🐳 개발용 Docker 빌드
+  # =============================================================================
+  dev-build:
+    name: 🐳 개발 빌드
+    runs-on: ubuntu-latest
+    needs: quick-check
+    
+    steps:
+    - name: 📥 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Docker Buildx 설정
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 🏗️ 개발 이미지 빌드
+      run: |
+        docker build -f Dockerfile.base -t yt2-base:dev .
+        docker build -f api/Dockerfile -t yt2-api:dev .
+        docker build -f crawler/Dockerfile -t yt2-crawler:dev .
+        docker build -f frontend/Dockerfile -t yt2-frontend:dev .
+        
+    - name: ✅ 빌드 성공 확인
+      run: |
+        echo "🎉 모든 개발 이미지가 성공적으로 빌드되었습니다!"
+        docker images | grep yt2
+
+  # =============================================================================
+  # 📝 PR 자동 리뷰
+  # =============================================================================
+  pr-review:
+    name: 📝 PR 리뷰
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: 📥 코드 체크아웃
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 🐍 Python 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: 📦 리뷰 도구 설치
+      run: |
+        pip install flake8 black isort
+        
+    - name: 🔍 코드 품질 분석
+      run: |
+        echo "## 📊 코드 품질 분석 결과" >> $GITHUB_STEP_SUMMARY
+        
+        # Black 포맷팅 검사
+        echo "### 🎨 코드 포맷팅 (Black)" >> $GITHUB_STEP_SUMMARY
+        black --check --diff api/ crawler/ >> $GITHUB_STEP_SUMMARY || true
+        
+        # isort 검사
+        echo "### 📝 Import 정렬 (isort)" >> $GITHUB_STEP_SUMMARY
+        isort --check-only --diff api/ crawler/ >> $GITHUB_STEP_SUMMARY || true
+        
+        # Flake8 검사
+        echo "### 🔍 린팅 (Flake8)" >> $GITHUB_STEP_SUMMARY
+        flake8 api/ crawler/ --statistics >> $GITHUB_STEP_SUMMARY || true
+        
+    - name: 📈 변경사항 요약
+      run: |
+        echo "## 📈 변경사항 요약" >> $GITHUB_STEP_SUMMARY
+        echo "### 📁 수정된 파일" >> $GITHUB_STEP_SUMMARY
+        git diff --name-only HEAD~1 HEAD >> $GITHUB_STEP_SUMMARY
+        
+        echo "### 📊 통계" >> $GITHUB_STEP_SUMMARY
+        echo "- 추가된 줄: $(git diff --numstat HEAD~1 HEAD | awk '{sum+=$1} END {print sum}')" >> $GITHUB_STEP_SUMMARY
+        echo "- 삭제된 줄: $(git diff --numstat HEAD~1 HEAD | awk '{sum+=$2} END {print sum}')" >> $GITHUB_STEP_SUMMARY

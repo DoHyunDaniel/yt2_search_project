@@ -1,0 +1,155 @@
+name: 🔒 보안 스캔
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # 매주 월요일 오전 2시
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # =============================================================================
+  # 🛡️ 종합 보안 스캔
+  # =============================================================================
+  security-scan:
+    name: 🛡️ 보안 스캔
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Python 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: 📦 보안 도구 설치
+      run: |
+        pip install safety bandit semgrep pip-audit
+        
+    - name: 🔍 의존성 취약점 스캔 (Safety)
+      run: |
+        echo "## 🔍 의존성 취약점 스캔 (Safety)" >> $GITHUB_STEP_SUMMARY
+        safety check -r api/requirements.txt -r crawler/requirements.txt --json > safety-report.json || true
+        safety check -r api/requirements.txt -r crawler/requirements.txt >> $GITHUB_STEP_SUMMARY || true
+        
+    - name: 🛡️ Python 보안 코드 분석 (Bandit)
+      run: |
+        echo "## 🛡️ Python 보안 코드 분석 (Bandit)" >> $GITHUB_STEP_SUMMARY
+        bandit -r api/ -f json -o bandit-api-report.json || true
+        bandit -r crawler/ -f json -o bandit-crawler-report.json || true
+        bandit -r api/ -f txt >> $GITHUB_STEP_SUMMARY || true
+        bandit -r crawler/ -f txt >> $GITHUB_STEP_SUMMARY || true
+        
+    - name: 🔍 정적 분석 (Semgrep)
+      run: |
+        echo "## 🔍 정적 분석 (Semgrep)" >> $GITHUB_STEP_SUMMARY
+        semgrep --config=auto api/ crawler/ --json -o semgrep-report.json || true
+        semgrep --config=auto api/ crawler/ >> $GITHUB_STEP_SUMMARY || true
+        
+    - name: 📊 보안 스캔 결과 업로드
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports-${{ github.run_number }}
+        path: |
+          safety-report.json
+          bandit-api-report.json
+          bandit-crawler-report.json
+          semgrep-report.json
+
+  # =============================================================================
+  # 🔐 시크릿 스캔
+  # =============================================================================
+  secret-scan:
+    name: 🔐 시크릿 스캔
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 코드 체크아웃
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 🔍 시크릿 스캔 (TruffleHog)
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+
+  # =============================================================================
+  # 🐳 컨테이너 보안 스캔
+  # =============================================================================
+  container-security:
+    name: 🐳 컨테이너 보안
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Docker 이미지 빌드
+      run: |
+        docker build -f Dockerfile.base -t yt2-base:security .
+        docker build -f api/Dockerfile -t yt2-api:security .
+        docker build -f crawler/Dockerfile -t yt2-crawler:security .
+        docker build -f frontend/Dockerfile -t yt2-frontend:security .
+        
+    - name: 🔍 컨테이너 취약점 스캔 (Trivy)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'yt2-api:security'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: 📊 Trivy 스캔 결과 업로드
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # =============================================================================
+  # 📊 보안 리포트 생성
+  # =============================================================================
+  security-report:
+    name: 📊 보안 리포트
+    runs-on: ubuntu-latest
+    needs: [security-scan, secret-scan, container-security]
+    if: always()
+    
+    steps:
+    - name: 📥 보안 리포트 다운로드
+      uses: actions/download-artifact@v4
+      with:
+        name: security-reports-${{ github.run_number }}
+        path: ./security-reports
+        
+    - name: 📊 보안 리포트 생성
+      run: |
+        echo "# 🔒 보안 스캔 리포트" > security-summary.md
+        echo "## 📅 스캔 일시: $(date)" >> security-summary.md
+        echo "## 🌿 브랜치: ${{ github.ref_name }}" >> security-summary.md
+        echo "## 🔗 커밋: ${{ github.sha }}" >> security-summary.md
+        echo "" >> security-summary.md
+        
+        if [ -f "security-reports/safety-report.json" ]; then
+          echo "### 🔍 의존성 취약점" >> security-summary.md
+          jq -r '.vulnerabilities[]? | "- \(.package_name): \(.advisory)"' security-reports/safety-report.json >> security-summary.md || true
+        fi
+        
+        if [ -f "security-reports/bandit-api-report.json" ]; then
+          echo "### 🛡️ API 보안 이슈" >> security-summary.md
+          jq -r '.results[]? | "- \(.test_name): \(.issue_severity) - \(.issue_text)"' security-reports/bandit-api-report.json >> security-summary.md || true
+        fi
+        
+        echo "" >> security-summary.md
+        echo "## ✅ 보안 스캔 완료" >> security-summary.md
+        
+    - name: 📤 보안 리포트 업로드
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-summary
+        path: security-summary.md
