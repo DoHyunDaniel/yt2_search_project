@@ -1,0 +1,197 @@
+version: '3.8'
+
+# 공통 베이스 이미지 빌드
+x-base-build: &base-build
+  context: .
+  dockerfile: Dockerfile.base
+
+services:
+  # 공통 베이스 이미지 빌드
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+    image: yt2-base:latest
+    container_name: yt2-base
+  # PostgreSQL 데이터베이스
+  postgres:
+    image: postgres:15
+    container_name: yt2-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: yt2
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - yt2-network
+
+  # Redis 캐시
+  redis:
+    image: redis:7-alpine
+    container_name: yt2-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - yt2-network
+
+  # OpenSearch
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    container_name: yt2-opensearch
+    restart: unless-stopped
+    environment:
+      - cluster.name=yt2-cluster
+      - node.name=yt2-node
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - yt2-network
+
+  # OpenSearch Dashboards
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.13.0
+    container_name: yt2-dashboards
+    restart: unless-stopped
+    environment:
+      - OPENSEARCH_HOSTS=["http://yt2-opensearch:9200"]
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    ports:
+      - "5601:5601"
+    depends_on:
+      - opensearch
+    networks:
+      - yt2-network
+
+  # API 서버
+  api:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    image: yt2-api:latest
+    container_name: yt2-api
+    restart: unless-stopped
+    depends_on:
+      - base
+      - postgres
+      - opensearch
+      - redis
+    environment:
+      - DB_HOST=yt2-pg
+      - DB_PORT=5432
+      - DB_NAME=yt2
+      - DB_USER=app
+      - DB_PASSWORD=app1234
+      - OS_HOST=http://yt2-opensearch:9200
+      - OS_USER=admin
+      - OS_PASSWORD=App1234!@#
+      - OS_INDEX=videos
+      - YOUTUBE_API_KEY=AIzaSyAE4ODDmhQ6eSN-BIDqDP7uVMl7-tRCCjU
+      - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+      - REDIS_HOST=yt2-redis
+      - REDIS_PORT=6379
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app
+      - ./crawler:/app/crawler
+      - ./backup:/app/backup
+    networks:
+      - yt2-network
+
+  # 크롤러 서비스
+  crawler:
+    build:
+      context: .
+      dockerfile: ./crawler/Dockerfile
+    image: yt2-crawler:latest
+    container_name: yt2-crawler
+    restart: unless-stopped
+    depends_on:
+      - base
+      - postgres
+      - opensearch
+      - redis
+    environment:
+      - DB_HOST=yt2-pg
+      - DB_PORT=5432
+      - DB_NAME=yt2
+      - DB_USER=app
+      - DB_PASSWORD=app1234
+      - OS_HOST=http://yt2-opensearch:9200
+      - OS_USER=admin
+      - OS_PASSWORD=App1234!@#
+      - OS_INDEX=videos
+      - YOUTUBE_API_KEY=AIzaSyAE4ODDmhQ6eSN-BIDqDP7uVMl7-tRCCjU
+      - REDIS_HOST=yt2-redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./crawler:/app
+      - ./backup:/app/backup
+    networks:
+      - yt2-network
+
+  # React 프론트엔드 (개발용)
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile.dev
+    container_name: yt2-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - api
+    networks:
+      - yt2-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # React 프론트엔드 (프로덕션용)
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    container_name: yt2-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - api
+    networks:
+      - yt2-network
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+  opensearch_data:
+
+networks:
+  yt2-network:
+    driver: bridge

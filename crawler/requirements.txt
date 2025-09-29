@@ -1,0 +1,4 @@
+# 크롤러 전용 의존성
+schedule==1.2.0
+
+# 공통 의존성은 requirements-common.txt에서 설치
