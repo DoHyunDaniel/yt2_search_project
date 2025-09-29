@@ -652,6 +652,326 @@ def execute_search_algorithm(algorithm: str, cur, search_term: str, limit: int, 
     return search_func(cur, search_term, limit, offset)
 
 # =============================================================================
+# 🤖 AI STATISTICS & RECOMMENDATION MODELS
+# =============================================================================
+
+class VideoStats(BaseModel):
+    video_id: str
+    title: str
+    channel_name: str
+    view_count: int
+    like_count: int
+    comment_count: int
+    published_at: str
+    engagement_rate: float
+    popularity_score: float
+
+class ChannelStats(BaseModel):
+    channel_id: str
+    channel_name: str
+    video_count: int
+    total_views: int
+    avg_views: float
+    total_likes: int
+    avg_likes: float
+    engagement_rate: float
+
+class TrendData(BaseModel):
+    period: str
+    video_count: int
+    total_views: int
+    avg_views: float
+    top_keywords: List[str]
+
+class RecommendationResponse(BaseModel):
+    video_id: str
+    title: str
+    channel_name: str
+    thumbnail_url: str
+    view_count: int
+    like_count: int
+    published_at: str
+    similarity_score: float
+    recommendation_reason: str
+
+# =============================================================================
+# 📊 STATISTICS FUNCTIONS
+# =============================================================================
+
+def get_popular_videos(cur, limit: int = 10) -> List[VideoStats]:
+    """인기 비디오 통계 조회"""
+    query = """
+    SELECT 
+        v.video_yid as video_id,
+        v.title,
+        c.title as channel_name,
+        (v.statistics->>'view_count')::int as view_count,
+        (v.statistics->>'like_count')::int as like_count,
+        (v.statistics->>'comment_count')::int as comment_count,
+        v.published_at,
+        CASE 
+            WHEN (v.statistics->>'view_count')::int > 0 
+            THEN ((v.statistics->>'like_count')::int + (v.statistics->>'comment_count')::int)::float / (v.statistics->>'view_count')::int * 100
+            ELSE 0 
+        END as engagement_rate,
+        CASE 
+            WHEN (v.statistics->>'view_count')::int > 0 
+            THEN LOG((v.statistics->>'view_count')::int + 1) * 
+                 (1 + ((v.statistics->>'like_count')::int + (v.statistics->>'comment_count')::int)::float / (v.statistics->>'view_count')::int)
+            ELSE 0 
+        END as popularity_score
+    FROM yt2.videos v
+    JOIN yt2.channels c ON v.channel_id = c.id
+    WHERE v.statistics->>'view_count' IS NOT NULL
+    ORDER BY popularity_score DESC
+    LIMIT %s
+    """
+    
+    cur.execute(query, (limit,))
+    results = cur.fetchall()
+    
+    return [
+        VideoStats(
+            video_id=row[0],
+            title=row[1],
+            channel_name=row[2],
+            view_count=row[3] or 0,
+            like_count=row[4] or 0,
+            comment_count=row[5] or 0,
+            published_at=row[6].isoformat() if row[6] else "",
+            engagement_rate=round(row[7], 2),
+            popularity_score=round(row[8], 2)
+        )
+        for row in results
+    ]
+
+def get_channel_stats(cur) -> List[ChannelStats]:
+    """채널별 통계 조회"""
+    query = """
+    SELECT 
+        c.id as channel_id,
+        c.title as channel_name,
+        COUNT(v.id) as video_count,
+        SUM((v.statistics->>'view_count')::int) as total_views,
+        AVG((v.statistics->>'view_count')::int) as avg_views,
+        SUM((v.statistics->>'like_count')::int) as total_likes,
+        AVG((v.statistics->>'like_count')::int) as avg_likes,
+        AVG(
+            CASE 
+                WHEN (v.statistics->>'view_count')::int > 0 
+                THEN ((v.statistics->>'like_count')::int + (v.statistics->>'comment_count')::int)::float / (v.statistics->>'view_count')::int * 100
+                ELSE 0 
+            END
+        ) as engagement_rate
+    FROM yt2.channels c
+    LEFT JOIN yt2.videos v ON c.id = v.channel_id
+    GROUP BY c.id, c.title
+    ORDER BY total_views DESC
+    """
+    
+    cur.execute(query)
+    results = cur.fetchall()
+    
+    return [
+        ChannelStats(
+            channel_id=str(row[0]),
+            channel_name=row[1],
+            video_count=row[2],
+            total_views=row[3] or 0,
+            avg_views=round(row[4] or 0, 2),
+            total_likes=row[5] or 0,
+            avg_likes=round(row[6] or 0, 2),
+            engagement_rate=round(row[7] or 0, 2)
+        )
+        for row in results
+    ]
+
+def get_trend_data(cur, period: str = "month") -> List[TrendData]:
+    """트렌드 데이터 조회"""
+    if period == "month":
+        date_format = "YYYY-MM"
+        group_by = "DATE_TRUNC('month', published_at)"
+    elif period == "week":
+        date_format = "YYYY-\"W\"WW"
+        group_by = "DATE_TRUNC('week', published_at)"
+    else:  # day
+        date_format = "YYYY-MM-DD"
+        group_by = "DATE_TRUNC('day', published_at)"
+    
+    query = f"""
+    SELECT 
+        TO_CHAR({group_by}, '{date_format}') as period,
+        COUNT(*) as video_count,
+        SUM((statistics->>'view_count')::int) as total_views,
+        AVG((statistics->>'view_count')::int) as avg_views
+    FROM yt2.videos
+    WHERE published_at IS NOT NULL
+    GROUP BY {group_by}
+    ORDER BY {group_by} DESC
+    LIMIT 12
+    """
+    
+    cur.execute(query)
+    results = cur.fetchall()
+    
+    return [
+        TrendData(
+            period=row[0],
+            video_count=row[1],
+            total_views=row[2] or 0,
+            avg_views=round(row[3] or 0, 2),
+            top_keywords=[]  # TODO: 키워드 분석 추가
+        )
+        for row in results
+    ]
+
+# =============================================================================
+# 🎯 RECOMMENDATION FUNCTIONS
+# =============================================================================
+
+def get_content_based_recommendations(cur, video_id: str, limit: int = 5) -> List[RecommendationResponse]:
+    """콘텐츠 기반 추천"""
+    # 1. 기준 비디오 정보 조회
+    base_query = """
+    SELECT title, description, tags
+    FROM yt2.videos
+    WHERE video_yid = %s
+    """
+    cur.execute(base_query, (video_id,))
+    base_video = cur.fetchone()
+    
+    if not base_video:
+        return []
+    
+    # 2. 모든 비디오 정보 조회
+    all_query = """
+    SELECT v.video_yid, v.title, v.description, v.tags, c.title as channel_name,
+           v.statistics->>'view_count' as view_count,
+           v.statistics->>'like_count' as like_count,
+           v.published_at,
+           v.thumbnails->'default'->>'url' as thumbnail_url
+    FROM yt2.videos v
+    JOIN yt2.channels c ON v.channel_id = c.id
+    WHERE v.video_yid != %s
+    """
+    cur.execute(all_query, (video_id,))
+    all_videos = cur.fetchall()
+    
+    if not all_videos:
+        return []
+    
+    # 3. TF-IDF 벡터화
+    base_text = f"{base_video[0]} {base_video[1]} {' '.join(base_video[2] or [])}"
+    all_texts = [f"{row[1]} {row[2]} {' '.join(row[3] or [])}" for row in all_videos]
+    
+    vectorizer = TfidfVectorizer(max_features=1000, ngram_range=(1, 2))
+    tfidf_matrix = vectorizer.fit_transform(all_texts)
+    base_vector = vectorizer.transform([base_text])
+    
+    # 4. 유사도 계산
+    similarities = cosine_similarity(base_vector, tfidf_matrix).flatten()
+    
+    # 5. 상위 결과 선택
+    top_indices = similarities.argsort()[-limit:][::-1]
+    
+    recommendations = []
+    for idx in top_indices:
+        if similarities[idx] > 0.1:  # 임계값 설정
+            video = all_videos[idx]
+            recommendations.append(RecommendationResponse(
+                video_id=video[0],
+                title=video[1],
+                channel_name=video[4],
+                thumbnail_url=video[8] or "",
+                view_count=int(video[5] or 0),
+                like_count=int(video[6] or 0),
+                published_at=video[7].isoformat() if video[7] else "",
+                similarity_score=round(similarities[idx], 3),
+                recommendation_reason="제목과 설명이 유사합니다"
+            ))
+    
+    return recommendations
+
+def get_popularity_based_recommendations(cur, limit: int = 5) -> List[RecommendationResponse]:
+    """인기도 기반 추천"""
+    query = """
+    SELECT 
+        v.video_yid,
+        v.title,
+        c.title as channel_name,
+        v.statistics->>'view_count' as view_count,
+        v.statistics->>'like_count' as like_count,
+        v.published_at,
+        v.thumbnails->'default'->>'url' as thumbnail_url,
+        CASE 
+            WHEN (v.statistics->>'view_count')::int > 0 
+            THEN LOG((v.statistics->>'view_count')::int + 1) * 
+                 (1 + ((v.statistics->>'like_count')::int + (v.statistics->>'comment_count')::int)::float / (v.statistics->>'view_count')::int)
+            ELSE 0 
+        END as popularity_score
+    FROM yt2.videos v
+    JOIN yt2.channels c ON v.channel_id = c.id
+    WHERE v.statistics->>'view_count' IS NOT NULL
+    ORDER BY popularity_score DESC
+    LIMIT %s
+    """
+    
+    cur.execute(query, (limit,))
+    results = cur.fetchall()
+    
+    return [
+        RecommendationResponse(
+            video_id=row[0],
+            title=row[1],
+            channel_name=row[2],
+            thumbnail_url=row[6] or "",
+            view_count=int(row[3] or 0),
+            like_count=int(row[4] or 0),
+            published_at=row[5].isoformat() if row[5] else "",
+            similarity_score=round(row[7], 3),
+            recommendation_reason="높은 인기도를 보입니다"
+        )
+        for row in results
+    ]
+
+def get_trending_recommendations(cur, limit: int = 5) -> List[RecommendationResponse]:
+    """최신 트렌드 추천"""
+    query = """
+    SELECT 
+        v.video_yid,
+        v.title,
+        c.title as channel_name,
+        v.statistics->>'view_count' as view_count,
+        v.statistics->>'like_count' as like_count,
+        v.published_at,
+        v.thumbnails->'default'->>'url' as thumbnail_url,
+        EXTRACT(EPOCH FROM (NOW() - v.published_at)) / 86400 as days_ago
+    FROM yt2.videos v
+    JOIN yt2.channels c ON v.channel_id = c.id
+    WHERE v.published_at IS NOT NULL
+    ORDER BY v.published_at DESC
+    LIMIT %s
+    """
+    
+    cur.execute(query, (limit,))
+    results = cur.fetchall()
+    
+    return [
+        RecommendationResponse(
+            video_id=row[0],
+            title=row[1],
+            channel_name=row[2],
+            thumbnail_url=row[6] or "",
+            view_count=int(row[3] or 0),
+            like_count=int(row[4] or 0),
+            published_at=row[5].isoformat() if row[5] else "",
+            similarity_score=round(1.0 / (1.0 + row[7]), 3),  # 최신일수록 높은 점수
+            recommendation_reason="최신 콘텐츠입니다"
+        )
+        for row in results
+    ]
+
+# =============================================================================
 # 🌐 API ENDPOINTS
 # =============================================================================
 @app.get("/")
@@ -1100,6 +1420,132 @@ def log_search(query: str, result_count: int, search_time: float):
                 conn.commit()
     except Exception as e:
         logger.error(f"검색 로그 저장 실패: {e}")
+
+# =============================================================================
+# 🤖 AI STATISTICS & RECOMMENDATION API ENDPOINTS
+# =============================================================================
+
+@app.get("/api/stats/popular-videos", response_model=List[VideoStats])
+async def get_popular_videos_api(limit: int = Query(10, ge=1, le=50, description="결과 수 제한")):
+    """인기 비디오 통계 조회"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                return get_popular_videos(cur, limit)
+    except Exception as e:
+        logger.error(f"인기 비디오 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"인기 비디오 조회 실패: {str(e)}")
+
+@app.get("/api/stats/channels", response_model=List[ChannelStats])
+async def get_channel_stats_api():
+    """채널별 통계 조회"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                return get_channel_stats(cur)
+    except Exception as e:
+        logger.error(f"채널 통계 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"채널 통계 조회 실패: {str(e)}")
+
+@app.get("/api/stats/trends", response_model=List[TrendData])
+async def get_trend_data_api(period: str = Query("month", description="기간 (day, week, month)")):
+    """트렌드 데이터 조회"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                return get_trend_data(cur, period)
+    except Exception as e:
+        logger.error(f"트렌드 데이터 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"트렌드 데이터 조회 실패: {str(e)}")
+
+@app.get("/api/recommendations/content-based", response_model=List[RecommendationResponse])
+async def get_content_based_recommendations_api(
+    video_id: str = Query(..., description="기준 비디오 ID"),
+    limit: int = Query(5, ge=1, le=20, description="추천 수 제한")
+):
+    """콘텐츠 기반 추천"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                return get_content_based_recommendations(cur, video_id, limit)
+    except Exception as e:
+        logger.error(f"콘텐츠 기반 추천 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"콘텐츠 기반 추천 실패: {str(e)}")
+
+@app.get("/api/recommendations/popularity", response_model=List[RecommendationResponse])
+async def get_popularity_recommendations_api(
+    limit: int = Query(5, ge=1, le=20, description="추천 수 제한")
+):
+    """인기도 기반 추천"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                return get_popularity_based_recommendations(cur, limit)
+    except Exception as e:
+        logger.error(f"인기도 기반 추천 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"인기도 기반 추천 실패: {str(e)}")
+
+@app.get("/api/recommendations/trending", response_model=List[RecommendationResponse])
+async def get_trending_recommendations_api(
+    limit: int = Query(5, ge=1, le=20, description="추천 수 제한")
+):
+    """최신 트렌드 추천"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                return get_trending_recommendations(cur, limit)
+    except Exception as e:
+        logger.error(f"트렌드 추천 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"트렌드 추천 실패: {str(e)}")
+
+@app.get("/api/stats/overview")
+async def get_stats_overview():
+    """통계 개요 조회"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # 전체 통계
+                cur.execute("""
+                    SELECT 
+                        COUNT(*) as total_videos,
+                        COUNT(DISTINCT channel_id) as total_channels,
+                        SUM((statistics->>'view_count')::int) as total_views,
+                        AVG((statistics->>'view_count')::int) as avg_views,
+                        SUM((statistics->>'like_count')::int) as total_likes,
+                        AVG((statistics->>'like_count')::int) as avg_likes
+                    FROM yt2.videos
+                    WHERE statistics->>'view_count' IS NOT NULL
+                """)
+                overall_stats = cur.fetchone()
+                
+                # 최근 7일 통계
+                cur.execute("""
+                    SELECT 
+                        COUNT(*) as recent_videos,
+                        SUM((statistics->>'view_count')::int) as recent_views
+                    FROM yt2.videos
+                    WHERE published_at >= NOW() - INTERVAL '7 days'
+                    AND statistics->>'view_count' IS NOT NULL
+                """)
+                recent_stats = cur.fetchone()
+                
+                return {
+                    "overall": {
+                        "total_videos": overall_stats[0] or 0,
+                        "total_channels": overall_stats[1] or 0,
+                        "total_views": overall_stats[2] or 0,
+                        "avg_views": round(overall_stats[3] or 0, 2),
+                        "total_likes": overall_stats[4] or 0,
+                        "avg_likes": round(overall_stats[5] or 0, 2)
+                    },
+                    "recent_7_days": {
+                        "new_videos": recent_stats[0] or 0,
+                        "new_views": recent_stats[1] or 0
+                    }
+                }
+    except Exception as e:
+        logger.error(f"통계 개요 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"통계 개요 조회 실패: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
