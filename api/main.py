@@ -43,12 +43,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS 설정
+# CORS 설정 (보안 강화)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://localhost:8080"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -1528,17 +1528,15 @@ async def batch_generate_ai_descriptions(request: dict):
                         status_code=400, detail="video_ids가 필요합니다."
                     )
 
-                # 비디오 정보 조회
+                # 비디오 정보 조회 (SQL 인젝션 방지)
                 placeholders = ",".join(["%s"] * len(video_ids))
-                cur.execute(
-                    f"""
+                query = f"""
                     SELECT v.video_yid as id, v.title, v.description, c.title as channel_name
                     FROM yt2.videos v
                     JOIN yt2.channels c ON v.channel_id = c.id
                     WHERE v.video_yid IN ({placeholders})
-                """,
-                    video_ids,
-                )
+                """
+                cur.execute(query, video_ids)
 
                 videos = cur.fetchall()
                 if not videos:
