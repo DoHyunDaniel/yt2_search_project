@@ -266,18 +266,16 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
         
     - name: 🏗️ 프로덕션 이미지 빌드 및 푸시
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./Dockerfile.base
-        push: true
-        tags: |
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:${{ github.sha }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      run: |
+        # 소문자 변환
+        IMAGE_NAME_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+        docker build -f Dockerfile.base -t ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:latest -t ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:${{ github.sha }} .
+        docker push ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:latest
+        docker push ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:${{ github.sha }}
         
     - name: 📊 배포 완료 알림
       run: |
+        # 소문자 변환
+        IMAGE_NAME_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
         echo "🚀 배포가 완료되었습니다!"
-        echo "이미지: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:${{ github.sha }}"
+        echo "이미지: ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:${{ github.sha }}"
