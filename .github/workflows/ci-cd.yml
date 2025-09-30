@@ -16,7 +16,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: dohyundaniel/yt2_search_project
+  IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
   # =============================================================================
@@ -74,6 +74,20 @@ jobs:
       run: |
         docker build -f Dockerfile.base -t yt2-base:latest .
         docker images | grep yt2-base
+        
+    - name: 🔐 Docker 레지스트리 로그인
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 📤 Base 이미지 푸시
+      run: |
+        docker tag yt2-base:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
+        docker tag yt2-base:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:${{ github.sha }}
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:${{ github.sha }}
 
   docker-build-services:
     name: 🏗️ Docker 빌드 (${{ matrix.service }})
@@ -86,6 +100,18 @@ jobs:
     steps:
     - name: 📥 코드 체크아웃
       uses: actions/checkout@v4
+      
+    - name: 🔐 Docker 레지스트리 로그인
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 📥 Base 이미지 Pull
+      run: |
+        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
+        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest yt2-base:latest
       
     - name: 🏗️ 서비스 이미지 빌드
       run: |
@@ -142,22 +168,11 @@ jobs:
         format: 'sarif'
         output: 'trivy-results.sarif'
         
-    - name: 📋 SARIF 파일 확인
-      run: |
-        if [ -f "trivy-results.sarif" ]; then
-          echo "SARIF 파일이 생성되었습니다."
-          ls -la trivy-results.sarif
-        else
-          echo "SARIF 파일이 생성되지 않았습니다."
-        fi
-      if: always()
-        
     - name: 📊 SARIF 업로드
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'trivy-results.sarif'
-      if: always() && success() && hashFiles('trivy-results.sarif') != ''
-      continue-on-error: true
+      if: always() && success()
 
   # =============================================================================
   # 🧪 통합 테스트
