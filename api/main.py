@@ -4,31 +4,32 @@ YT2 API 서버
 수원시 행궁동 YouTube 데이터 검색 API
 """
 
-import os
-import sys
 import json
 import logging
+import os
+import sys
 from datetime import datetime
-from typing import List, Dict, Optional
-import psycopg2
-import psycopg2.extras
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from opensearchpy import OpenSearch
-import redis
-from dotenv import load_dotenv
+from typing import Dict, List, Optional
 
 # 머신러닝 라이브러리
 import numpy as np
+
+# OpenAI 라이브러리
+import openai
 import pandas as pd
+import psycopg2
+import psycopg2.extras
+import redis
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from opensearchpy import OpenSearch
+from pydantic import BaseModel
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # from sentence_transformers import SentenceTransformer  # 의존성 문제로 임시 비활성화
 
-# OpenAI 라이브러리
-import openai
 
 # 환경변수 로딩
 load_dotenv()

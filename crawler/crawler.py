@@ -4,20 +4,21 @@ YT2 YouTube 크롤러
 수원시 행궁동 관련 YouTube 영상 데이터 수집
 """
 
+import json
+import logging
 import os
 import sys
 import time
-import json
-import logging
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+
 import psycopg2
 import psycopg2.extras
+import redis
+from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from opensearchpy import OpenSearch
-import redis
-from dotenv import load_dotenv
 
 # 환경변수 로딩
 load_dotenv()

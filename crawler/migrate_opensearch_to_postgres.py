@@ -3,13 +3,14 @@
 OpenSearch에서 PostgreSQL로 데이터 마이그레이션 스크립트
 """
 
-import os
 import json
+import logging
+import os
+from datetime import datetime
+
 import psycopg2
 import psycopg2.extras
 from opensearchpy import OpenSearch
-from datetime import datetime
-import logging
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
