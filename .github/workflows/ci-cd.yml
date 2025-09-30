@@ -17,6 +17,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.repository.name }}
+  IMAGE_NAME_LOWER: ${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
   # =============================================================================
@@ -84,10 +85,12 @@ jobs:
         
     - name: 📤 Base 이미지 푸시
       run: |
-        docker tag yt2-base:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
-        docker tag yt2-base:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:${{ github.sha }}
-        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
-        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:${{ github.sha }}
+        # 소문자 변환
+        IMAGE_NAME_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+        docker tag yt2-base:latest ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:latest
+        docker tag yt2-base:latest ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:${{ github.sha }}
+        docker push ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:latest
+        docker push ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:${{ github.sha }}
 
   docker-build-services:
     name: 🏗️ Docker 빌드 (${{ matrix.service }})
@@ -110,19 +113,23 @@ jobs:
         
     - name: 📥 Base 이미지 Pull
       run: |
-        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest
-        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:latest yt2-base:latest
+        # 소문자 변환
+        IMAGE_NAME_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+        docker pull ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:latest
+        docker tag ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-base:latest yt2-base:latest
       
     - name: 🏗️ 서비스 이미지 빌드
       run: |
+        # 소문자 변환
+        IMAGE_NAME_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
         if [ "${{ matrix.service }}" = "api" ]; then
-          docker build -f api/Dockerfile -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest .
+          docker build -f api/Dockerfile -t ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-api:latest .
         elif [ "${{ matrix.service }}" = "crawler" ]; then
-          docker build -f crawler/Dockerfile -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-crawler:latest .
+          docker build -f crawler/Dockerfile -t ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-crawler:latest .
         elif [ "${{ matrix.service }}" = "frontend" ]; then
-          docker build -f frontend/Dockerfile -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest .
+          docker build -f frontend/Dockerfile -t ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-frontend:latest .
         fi
-        docker images | grep ${{ env.IMAGE_NAME }}-${{ matrix.service }}
+        docker images | grep ${IMAGE_NAME_LOWER}-${{ matrix.service }}
 
   # =============================================================================
   # 🔒 보안 스캔
