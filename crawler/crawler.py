@@ -7,10 +7,9 @@ YT2 YouTube 크롤러
 import json
 import logging
 import os
-import sys
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import psycopg2
 import psycopg2.extras
@@ -183,7 +182,6 @@ class YT2Crawler:
             videos = []
             for item in search_response.get("items", []):
                 video_id = item["id"]["videoId"]
-                snippet = item["snippet"]
 
                 # 영상 상세 정보 수집
                 video_details = self.get_video_details(video_id)

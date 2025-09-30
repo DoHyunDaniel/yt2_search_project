@@ -7,16 +7,11 @@ YT2 API 서버
 import json
 import logging
 import os
-import sys
 from datetime import datetime
 from typing import Dict, List, Optional
 
-# 머신러닝 라이브러리
-import numpy as np
-
 # OpenAI 라이브러리
 import openai
-import pandas as pd
 import psycopg2
 import psycopg2.extras
 import redis
@@ -144,7 +139,7 @@ def get_db_connection():
 def basic_search(cur, search_term: str, limit: int, offset: int) -> tuple:
     """기본 ILIKE 검색"""
     search_query = """
-        SELECT 
+        SELECT
             v.video_yid as id,
             v.title,
             v.description,
@@ -166,11 +161,11 @@ def basic_search(cur, search_term: str, limit: int, offset: int) -> tuple:
             v.relevant_topic_ids
         FROM yt2.videos v
         JOIN yt2.channels c ON v.channel_id = c.id
-        WHERE 
-            v.title ILIKE %s OR 
-            v.description ILIKE %s OR 
+        WHERE
+            v.title ILIKE %s OR
+            v.description ILIKE %s OR
             EXISTS (
-                SELECT 1 FROM unnest(v.tags) as tag 
+                SELECT 1 FROM unnest(v.tags) as tag
                 WHERE tag ILIKE %s
             )
         ORDER BY v.published_at DESC
@@ -185,11 +180,11 @@ def basic_search(cur, search_term: str, limit: int, offset: int) -> tuple:
         SELECT COUNT(*)
         FROM yt2.videos v
         JOIN yt2.channels c ON v.channel_id = c.id
-        WHERE 
-            v.title ILIKE %s OR 
-            v.description ILIKE %s OR 
+        WHERE
+            v.title ILIKE %s OR
+            v.description ILIKE %s OR
             EXISTS (
-                SELECT 1 FROM unnest(v.tags) as tag 
+                SELECT 1 FROM unnest(v.tags) as tag
                 WHERE tag ILIKE %s
             )
     """
@@ -208,7 +203,7 @@ def tfidf_search(cur, search_term: str, limit: int, offset: int) -> tuple:
     """TF-IDF 기반 검색"""
     # 모든 비디오 데이터 가져오기
     all_videos_query = """
-        SELECT 
+        SELECT
             v.video_yid as id,
             v.title,
             v.description,
@@ -303,7 +298,7 @@ def weighted_search(cur, search_term: str, limit: int, offset: int) -> tuple:
     description_weight = 1.0
 
     search_query = """
-        SELECT 
+        SELECT
             v.video_yid as id,
             v.title,
             v.description,
@@ -328,17 +323,17 @@ def weighted_search(cur, search_term: str, limit: int, offset: int) -> tuple:
                 CASE WHEN v.title ILIKE %s THEN %s ELSE 0 END +
                 CASE WHEN v.description ILIKE %s THEN %s ELSE 0 END +
                 CASE WHEN EXISTS (
-                    SELECT 1 FROM unnest(v.tags) as tag 
+                    SELECT 1 FROM unnest(v.tags) as tag
                     WHERE tag ILIKE %s
                 ) THEN %s ELSE 0 END
             ) as relevance_score
         FROM yt2.videos v
         JOIN yt2.channels c ON v.channel_id = c.id
-        WHERE 
-            v.title ILIKE %s OR 
-            v.description ILIKE %s OR 
+        WHERE
+            v.title ILIKE %s OR
+            v.description ILIKE %s OR
             EXISTS (
-                SELECT 1 FROM unnest(v.tags) as tag 
+                SELECT 1 FROM unnest(v.tags) as tag
                 WHERE tag ILIKE %s
             )
         ORDER BY relevance_score DESC, v.published_at DESC
@@ -368,11 +363,11 @@ def weighted_search(cur, search_term: str, limit: int, offset: int) -> tuple:
         SELECT COUNT(*)
         FROM yt2.videos v
         JOIN yt2.channels c ON v.channel_id = c.id
-        WHERE 
-            v.title ILIKE %s OR 
-            v.description ILIKE %s OR 
+        WHERE
+            v.title ILIKE %s OR
+            v.description ILIKE %s OR
             EXISTS (
-                SELECT 1 FROM unnest(v.tags) as tag 
+                SELECT 1 FROM unnest(v.tags) as tag
                 WHERE tag ILIKE %s
             )
     """
@@ -424,7 +419,7 @@ def opensearch_bm25_search(cur, search_term: str, limit: int, offset: int) -> tu
         # PostgreSQL에서 상세 정보 조회
         placeholders = ",".join(["%s"] * len(video_ids))
         detail_query = f"""
-            SELECT 
+            SELECT
                 v.video_yid as id,
                 v.title,
                 v.description,
@@ -447,7 +442,7 @@ def opensearch_bm25_search(cur, search_term: str, limit: int, offset: int) -> tu
             FROM yt2.videos v
             JOIN yt2.channels c ON v.channel_id = c.id
             WHERE v.video_yid IN ({placeholders})
-            ORDER BY 
+            ORDER BY
                 CASE v.video_yid
                     {''.join([f"WHEN %s THEN {i}" for i in range(len(video_ids))])}
                 END
@@ -537,7 +532,7 @@ def semantic_search(cur, search_term: str, limit: int, offset: int) -> tuple:
     try:
         # 임베딩이 있는 비디오만 검색
         embedding_query = """
-            SELECT 
+            SELECT
                 v.video_yid as id,
                 v.title,
                 v.description,
@@ -630,7 +625,7 @@ def sentiment_search(cur, search_term: str, limit: int, offset: int) -> tuple:
         placeholders = ",".join(["%s"] * len(video_ids))
 
         sentiment_query = f"""
-            SELECT 
+            SELECT
                 v.video_yid,
                 COALESCE(AVG(c.sentiment_score), 0) as avg_sentiment,
                 COUNT(c.id) as comment_count
@@ -892,7 +887,7 @@ class RecommendationResponse(BaseModel):
 def get_popular_videos(cur, limit: int = 10) -> List[VideoStats]:
     """인기 비디오 통계 조회"""
     query = """
-    SELECT 
+    SELECT
         v.video_yid as video_id,
         v.title,
         c.title as channel_name,
@@ -900,16 +895,16 @@ def get_popular_videos(cur, limit: int = 10) -> List[VideoStats]:
         (v.statistics->>'like_count')::int as like_count,
         (v.statistics->>'comment_count')::int as comment_count,
         v.published_at,
-        CASE 
-            WHEN (v.statistics->>'view_count')::int > 0 
+        CASE
+            WHEN (v.statistics->>'view_count')::int > 0
             THEN ((v.statistics->>'like_count')::int + (v.statistics->>'comment_count')::int)::float / (v.statistics->>'view_count')::int * 100
-            ELSE 0 
+            ELSE 0
         END as engagement_rate,
-        CASE 
-            WHEN (v.statistics->>'view_count')::int > 0 
-            THEN LOG((v.statistics->>'view_count')::int + 1) * 
+        CASE
+            WHEN (v.statistics->>'view_count')::int > 0
+            THEN LOG((v.statistics->>'view_count')::int + 1) *
                  (1 + ((v.statistics->>'like_count')::int + (v.statistics->>'comment_count')::int)::float / (v.statistics->>'view_count')::int)
-            ELSE 0 
+            ELSE 0
         END as popularity_score
     FROM yt2.videos v
     JOIN yt2.channels c ON v.channel_id = c.id
@@ -940,7 +935,7 @@ def get_popular_videos(cur, limit: int = 10) -> List[VideoStats]:
 def get_channel_stats(cur) -> List[ChannelStats]:
     """채널별 통계 조회"""
     query = """
-    SELECT 
+    SELECT
         c.id as channel_id,
         c.title as channel_name,
         COUNT(v.id) as video_count,
@@ -949,10 +944,10 @@ def get_channel_stats(cur) -> List[ChannelStats]:
         SUM((v.statistics->>'like_count')::int) as total_likes,
         AVG((v.statistics->>'like_count')::int) as avg_likes,
         AVG(
-            CASE 
-                WHEN (v.statistics->>'view_count')::int > 0 
+            CASE
+                WHEN (v.statistics->>'view_count')::int > 0
                 THEN ((v.statistics->>'like_count')::int + (v.statistics->>'comment_count')::int)::float / (v.statistics->>'view_count')::int * 100
-                ELSE 0 
+                ELSE 0
             END
         ) as engagement_rate
     FROM yt2.channels c
@@ -992,7 +987,7 @@ def get_trend_data(cur, period: str = "month") -> List[TrendData]:
         group_by = "DATE_TRUNC('day', published_at)"
 
     query = f"""
-    SELECT 
+    SELECT
         TO_CHAR({group_by}, '{date_format}') as period,
         COUNT(*) as video_count,
         SUM((statistics->>'view_count')::int) as total_views,
@@ -1214,7 +1209,7 @@ def get_popularity_based_recommendations(
 ) -> List[RecommendationResponse]:
     """인기도 기반 추천"""
     query = """
-    SELECT 
+    SELECT
         v.video_yid,
         v.title,
         c.title as channel_name,
@@ -1222,11 +1217,11 @@ def get_popularity_based_recommendations(
         v.statistics->>'like_count' as like_count,
         v.published_at,
         v.thumbnails->'default'->>'url' as thumbnail_url,
-        CASE 
-            WHEN (v.statistics->>'view_count')::int > 0 
-            THEN LOG((v.statistics->>'view_count')::int + 1) * 
+        CASE
+            WHEN (v.statistics->>'view_count')::int > 0
+            THEN LOG((v.statistics->>'view_count')::int + 1) *
                  (1 + ((v.statistics->>'like_count')::int + (v.statistics->>'comment_count')::int)::float / (v.statistics->>'view_count')::int)
-            ELSE 0 
+            ELSE 0
         END as popularity_score
     FROM yt2.videos v
     JOIN yt2.channels c ON v.channel_id = c.id
@@ -1257,7 +1252,7 @@ def get_popularity_based_recommendations(
 def get_trending_recommendations(cur, limit: int = 5) -> List[RecommendationResponse]:
     """최신 트렌드 추천"""
     query = """
-    SELECT 
+    SELECT
         v.video_yid,
         v.title,
         c.title as channel_name,
@@ -1343,7 +1338,7 @@ async def get_stats():
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         (SELECT COUNT(*) FROM yt2.channels) as total_channels,
                         (SELECT COUNT(*) FROM yt2.videos) as total_videos,
                         (SELECT COUNT(*) FROM yt2.comments) as total_comments,
@@ -1576,7 +1571,7 @@ async def get_video_detail(video_id: str):
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         v.video_yid as id,
                         v.title,
                         v.description,
@@ -1640,7 +1635,7 @@ async def get_channels(
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         c.channel_yid as id,
                         c.title,
                         c.description,
@@ -1688,7 +1683,7 @@ async def get_playlists(
                 if channel_id:
                     cur.execute(
                         """
-                        SELECT 
+                        SELECT
                             p.playlist_yid as id,
                             p.title,
                             p.description,
@@ -1708,7 +1703,7 @@ async def get_playlists(
                 else:
                     cur.execute(
                         """
-                        SELECT 
+                        SELECT
                             p.playlist_yid as id,
                             p.title,
                             p.description,
@@ -1758,7 +1753,7 @@ async def get_playlist_items(
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         pi.playlist_item_yid as id,
                         pi.position,
                         pi.title,
@@ -1817,7 +1812,7 @@ async def get_video_captions(video_id: str):
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         caption_yid as id,
                         language,
                         name,
@@ -1874,7 +1869,7 @@ async def get_video_categories():
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         category_yid as id,
                         title,
                         assignable,
@@ -2045,7 +2040,7 @@ async def get_stats_overview():
                 # 전체 통계
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         COUNT(*) as total_videos,
                         COUNT(DISTINCT channel_id) as total_channels,
                         SUM((statistics->>'view_count')::int) as total_views,
@@ -2061,7 +2056,7 @@ async def get_stats_overview():
                 # 최근 7일 통계
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         COUNT(*) as recent_videos,
                         SUM((statistics->>'view_count')::int) as recent_views
                     FROM yt2.videos

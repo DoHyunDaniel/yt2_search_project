@@ -5,7 +5,6 @@ OpenSearch에서 PostgreSQL로 데이터 마이그레이션 스크립트
 
 import json
 import logging
-import os
 from datetime import datetime
 
 import psycopg2
@@ -65,7 +64,7 @@ def migrate_to_postgres(data_list):
                         channel_id = save_channel(cur, data)
 
                         # 비디오 데이터 저장
-                        video_id = save_video(cur, data, channel_id)
+                        save_video(cur, data, channel_id)
 
                         success_count += 1
                         logger.info(
