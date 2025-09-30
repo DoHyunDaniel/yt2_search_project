@@ -8,6 +8,12 @@ on:
   schedule:
     - cron: '0 2 * * 1'  # 매주 월요일 오전 2시 (한국 시간 오전 11시)
 
+# GitHub Actions 권한 설정
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.repository.name }}
@@ -136,11 +142,22 @@ jobs:
         format: 'sarif'
         output: 'trivy-results.sarif'
         
+    - name: 📋 SARIF 파일 확인
+      run: |
+        if [ -f "trivy-results.sarif" ]; then
+          echo "SARIF 파일이 생성되었습니다."
+          ls -la trivy-results.sarif
+        else
+          echo "SARIF 파일이 생성되지 않았습니다."
+        fi
+      if: always()
+        
     - name: 📊 SARIF 업로드
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'trivy-results.sarif'
-      if: always() && success()
+      if: always() && success() && hashFiles('trivy-results.sarif') != ''
+      continue-on-error: true
 
   # =============================================================================
   # 🧪 통합 테스트
