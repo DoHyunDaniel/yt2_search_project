@@ -13673,3 +13673,375 @@
 2025-09-30 03:46:32,395 - INFO - 총 댓글 수: 0
 2025-09-30 03:46:32,395 - INFO - 성공적으로 저장된 영상: 0
 2025-09-30 03:46:32,395 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:47:39,094 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:47:39,099 - INFO - YT2 크롤링 시작
+2025-09-30 03:47:39,099 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:47:39,299 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:47:39,299 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:47:39,300 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:47:39,301 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:47:39,301 - INFO - === 크롤링 결과 ===
+2025-09-30 03:47:39,302 - INFO - 총 영상 수: 0
+2025-09-30 03:47:39,302 - INFO - 총 댓글 수: 0
+2025-09-30 03:47:39,303 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:47:39,303 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:48:45,947 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:48:45,952 - INFO - YT2 크롤링 시작
+2025-09-30 03:48:45,952 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:48:46,157 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:48:46,158 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:48:46,158 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:48:46,159 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:48:46,159 - INFO - === 크롤링 결과 ===
+2025-09-30 03:48:46,159 - INFO - 총 영상 수: 0
+2025-09-30 03:48:46,160 - INFO - 총 댓글 수: 0
+2025-09-30 03:48:46,160 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:48:46,160 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:49:53,544 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:49:53,555 - INFO - YT2 크롤링 시작
+2025-09-30 03:49:53,555 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:49:53,161 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:49:53,161 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:49:53,163 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:49:53,164 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:49:53,165 - INFO - === 크롤링 결과 ===
+2025-09-30 03:49:53,166 - INFO - 총 영상 수: 0
+2025-09-30 03:49:53,167 - INFO - 총 댓글 수: 0
+2025-09-30 03:49:53,168 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:49:53,169 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:51:03,596 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:51:03,600 - INFO - YT2 크롤링 시작
+2025-09-30 03:51:03,601 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:51:03,834 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:51:03,835 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:51:03,835 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:51:03,836 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:51:03,836 - INFO - === 크롤링 결과 ===
+2025-09-30 03:51:03,837 - INFO - 총 영상 수: 0
+2025-09-30 03:51:03,837 - INFO - 총 댓글 수: 0
+2025-09-30 03:51:03,838 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:51:03,839 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:52:10,879 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:52:10,882 - INFO - YT2 크롤링 시작
+2025-09-30 03:52:10,883 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:52:11,089 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:52:11,090 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:52:11,091 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:52:11,091 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:52:11,092 - INFO - === 크롤링 결과 ===
+2025-09-30 03:52:11,092 - INFO - 총 영상 수: 0
+2025-09-30 03:52:11,092 - INFO - 총 댓글 수: 0
+2025-09-30 03:52:11,093 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:52:11,093 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:53:17,584 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:53:17,588 - INFO - YT2 크롤링 시작
+2025-09-30 03:53:17,589 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:53:17,789 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:53:17,790 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:53:17,790 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:53:17,791 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:53:17,791 - INFO - === 크롤링 결과 ===
+2025-09-30 03:53:17,791 - INFO - 총 영상 수: 0
+2025-09-30 03:53:17,792 - INFO - 총 댓글 수: 0
+2025-09-30 03:53:17,792 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:53:17,792 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:54:24,246 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:54:24,253 - INFO - YT2 크롤링 시작
+2025-09-30 03:54:24,254 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:54:24,540 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:54:24,540 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:54:24,541 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:54:24,541 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:54:24,541 - INFO - === 크롤링 결과 ===
+2025-09-30 03:54:24,542 - INFO - 총 영상 수: 0
+2025-09-30 03:54:24,542 - INFO - 총 댓글 수: 0
+2025-09-30 03:54:24,542 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:54:24,543 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:55:31,100 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:55:31,108 - INFO - YT2 크롤링 시작
+2025-09-30 03:55:31,109 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:55:31,347 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:55:31,348 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:55:31,348 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:55:31,349 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:55:31,349 - INFO - === 크롤링 결과 ===
+2025-09-30 03:55:31,349 - INFO - 총 영상 수: 0
+2025-09-30 03:55:31,350 - INFO - 총 댓글 수: 0
+2025-09-30 03:55:31,350 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:55:31,350 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:56:37,934 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:56:37,938 - INFO - YT2 크롤링 시작
+2025-09-30 03:56:37,938 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:56:38,148 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:56:38,148 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:56:38,148 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:56:38,149 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:56:38,149 - INFO - === 크롤링 결과 ===
+2025-09-30 03:56:38,150 - INFO - 총 영상 수: 0
+2025-09-30 03:56:38,150 - INFO - 총 댓글 수: 0
+2025-09-30 03:56:38,150 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:56:38,151 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:57:44,465 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:57:44,468 - INFO - YT2 크롤링 시작
+2025-09-30 03:57:44,469 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:57:44,688 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:57:44,688 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:57:44,689 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:57:44,689 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:57:44,689 - INFO - === 크롤링 결과 ===
+2025-09-30 03:57:44,690 - INFO - 총 영상 수: 0
+2025-09-30 03:57:44,690 - INFO - 총 댓글 수: 0
+2025-09-30 03:57:44,690 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:57:44,691 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:58:51,172 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:58:51,177 - INFO - YT2 크롤링 시작
+2025-09-30 03:58:51,178 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:58:51,396 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:58:51,397 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:58:51,397 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:58:51,398 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:58:51,398 - INFO - === 크롤링 결과 ===
+2025-09-30 03:58:51,399 - INFO - 총 영상 수: 0
+2025-09-30 03:58:51,400 - INFO - 총 댓글 수: 0
+2025-09-30 03:58:51,400 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:58:51,401 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:59:57,891 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:59:57,895 - INFO - YT2 크롤링 시작
+2025-09-30 03:59:57,895 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:59:58,126 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:59:58,127 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:59:58,128 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:59:58,129 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:59:58,129 - INFO - === 크롤링 결과 ===
+2025-09-30 03:59:58,129 - INFO - 총 영상 수: 0
+2025-09-30 03:59:58,129 - INFO - 총 댓글 수: 0
+2025-09-30 03:59:58,130 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:59:58,130 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:01:04,621 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:01:04,624 - INFO - YT2 크롤링 시작
+2025-09-30 04:01:04,625 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:01:04,843 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:01:04,843 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:01:04,844 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:01:04,844 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:01:04,844 - INFO - === 크롤링 결과 ===
+2025-09-30 04:01:04,845 - INFO - 총 영상 수: 0
+2025-09-30 04:01:04,845 - INFO - 총 댓글 수: 0
+2025-09-30 04:01:04,845 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:01:04,846 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:02:11,727 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:02:11,734 - INFO - YT2 크롤링 시작
+2025-09-30 04:02:11,734 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:02:11,973 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:02:11,973 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:02:11,974 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:02:11,974 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:02:11,974 - INFO - === 크롤링 결과 ===
+2025-09-30 04:02:11,975 - INFO - 총 영상 수: 0
+2025-09-30 04:02:11,975 - INFO - 총 댓글 수: 0
+2025-09-30 04:02:11,976 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:02:11,976 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:03:18,519 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:03:18,524 - INFO - YT2 크롤링 시작
+2025-09-30 04:03:18,525 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:03:18,787 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:03:18,787 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:03:18,788 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:03:18,788 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:03:18,788 - INFO - === 크롤링 결과 ===
+2025-09-30 04:03:18,789 - INFO - 총 영상 수: 0
+2025-09-30 04:03:18,789 - INFO - 총 댓글 수: 0
+2025-09-30 04:03:18,790 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:03:18,790 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:04:25,491 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:04:25,496 - INFO - YT2 크롤링 시작
+2025-09-30 04:04:25,496 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:04:25,722 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:04:25,723 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:04:25,723 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:04:25,724 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:04:25,724 - INFO - === 크롤링 결과 ===
+2025-09-30 04:04:25,724 - INFO - 총 영상 수: 0
+2025-09-30 04:04:25,725 - INFO - 총 댓글 수: 0
+2025-09-30 04:04:25,725 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:04:25,725 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:05:32,669 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:05:32,674 - INFO - YT2 크롤링 시작
+2025-09-30 04:05:32,675 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:05:32,921 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:05:32,922 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:05:32,922 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:05:32,923 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:05:32,924 - INFO - === 크롤링 결과 ===
+2025-09-30 04:05:32,924 - INFO - 총 영상 수: 0
+2025-09-30 04:05:32,925 - INFO - 총 댓글 수: 0
+2025-09-30 04:05:32,926 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:05:32,926 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:06:39,685 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:06:39,690 - INFO - YT2 크롤링 시작
+2025-09-30 04:06:39,691 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:06:39,913 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:06:39,914 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:06:39,914 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:06:39,914 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:06:39,915 - INFO - === 크롤링 결과 ===
+2025-09-30 04:06:39,915 - INFO - 총 영상 수: 0
+2025-09-30 04:06:39,915 - INFO - 총 댓글 수: 0
+2025-09-30 04:06:39,916 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:06:39,916 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:07:46,268 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:07:46,272 - INFO - YT2 크롤링 시작
+2025-09-30 04:07:46,272 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:07:50,169 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:07:50,170 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:07:50,171 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:07:50,171 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:07:50,171 - INFO - === 크롤링 결과 ===
+2025-09-30 04:07:50,172 - INFO - 총 영상 수: 0
+2025-09-30 04:07:50,172 - INFO - 총 댓글 수: 0
+2025-09-30 04:07:50,172 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:07:50,173 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:08:56,479 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:08:56,483 - INFO - YT2 크롤링 시작
+2025-09-30 04:08:56,483 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:08:56,705 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:08:56,706 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:08:56,707 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:08:56,707 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:08:56,708 - INFO - === 크롤링 결과 ===
+2025-09-30 04:08:56,708 - INFO - 총 영상 수: 0
+2025-09-30 04:08:56,708 - INFO - 총 댓글 수: 0
+2025-09-30 04:08:56,709 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:08:56,709 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:10:03,492 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:10:03,496 - INFO - YT2 크롤링 시작
+2025-09-30 04:10:03,497 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:10:03,707 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:10:03,707 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:10:03,708 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:10:03,708 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:10:03,708 - INFO - === 크롤링 결과 ===
+2025-09-30 04:10:03,709 - INFO - 총 영상 수: 0
+2025-09-30 04:10:03,709 - INFO - 총 댓글 수: 0
+2025-09-30 04:10:03,710 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:10:03,710 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:11:10,009 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:11:10,013 - INFO - YT2 크롤링 시작
+2025-09-30 04:11:10,013 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:11:09,618 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:11:09,619 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:11:09,619 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:11:09,620 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:11:09,620 - INFO - === 크롤링 결과 ===
+2025-09-30 04:11:09,621 - INFO - 총 영상 수: 0
+2025-09-30 04:11:09,621 - INFO - 총 댓글 수: 0
+2025-09-30 04:11:09,621 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:11:09,622 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:12:19,242 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:12:19,245 - INFO - YT2 크롤링 시작
+2025-09-30 04:12:19,246 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:12:19,470 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:12:19,471 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:12:19,471 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:12:19,472 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:12:19,472 - INFO - === 크롤링 결과 ===
+2025-09-30 04:12:19,472 - INFO - 총 영상 수: 0
+2025-09-30 04:12:19,473 - INFO - 총 댓글 수: 0
+2025-09-30 04:12:19,473 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:12:19,474 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:13:26,092 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:13:26,096 - INFO - YT2 크롤링 시작
+2025-09-30 04:13:26,096 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:13:26,369 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:13:26,369 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:13:26,370 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:13:26,370 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:13:26,371 - INFO - === 크롤링 결과 ===
+2025-09-30 04:13:26,371 - INFO - 총 영상 수: 0
+2025-09-30 04:13:26,371 - INFO - 총 댓글 수: 0
+2025-09-30 04:13:26,372 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:13:26,372 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:14:33,045 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:14:33,051 - INFO - YT2 크롤링 시작
+2025-09-30 04:14:33,052 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:14:33,277 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:14:33,278 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:14:33,278 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:14:33,279 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:14:33,279 - INFO - === 크롤링 결과 ===
+2025-09-30 04:14:33,279 - INFO - 총 영상 수: 0
+2025-09-30 04:14:33,280 - INFO - 총 댓글 수: 0
+2025-09-30 04:14:33,280 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:14:33,281 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:15:39,810 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:15:39,815 - INFO - YT2 크롤링 시작
+2025-09-30 04:15:39,816 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:15:40,055 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:15:40,055 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:15:40,055 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:15:40,056 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:15:40,056 - INFO - === 크롤링 결과 ===
+2025-09-30 04:15:40,057 - INFO - 총 영상 수: 0
+2025-09-30 04:15:40,057 - INFO - 총 댓글 수: 0
+2025-09-30 04:15:40,057 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:15:40,057 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:16:46,763 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:16:46,767 - INFO - YT2 크롤링 시작
+2025-09-30 04:16:46,768 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:16:46,973 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:16:46,974 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:16:46,975 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:16:46,975 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:16:46,976 - INFO - === 크롤링 결과 ===
+2025-09-30 04:16:46,976 - INFO - 총 영상 수: 0
+2025-09-30 04:16:46,976 - INFO - 총 댓글 수: 0
+2025-09-30 04:16:46,977 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:16:46,977 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:17:53,618 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:17:53,623 - INFO - YT2 크롤링 시작
+2025-09-30 04:17:53,624 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:17:53,840 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:17:53,841 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:17:53,841 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:17:53,841 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:17:53,842 - INFO - === 크롤링 결과 ===
+2025-09-30 04:17:53,842 - INFO - 총 영상 수: 0
+2025-09-30 04:17:53,842 - INFO - 총 댓글 수: 0
+2025-09-30 04:17:53,843 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:17:53,843 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:19:00,700 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:19:00,708 - INFO - YT2 크롤링 시작
+2025-09-30 04:19:00,708 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:19:00,917 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:19:00,918 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:19:00,919 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:19:00,919 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:19:00,919 - INFO - === 크롤링 결과 ===
+2025-09-30 04:19:00,920 - INFO - 총 영상 수: 0
+2025-09-30 04:19:00,921 - INFO - 총 댓글 수: 0
+2025-09-30 04:19:00,922 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:19:00,923 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:20:07,474 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:20:07,477 - INFO - YT2 크롤링 시작
+2025-09-30 04:20:07,477 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:20:07,689 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:20:07,690 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:20:07,690 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:20:07,691 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:20:07,692 - INFO - === 크롤링 결과 ===
+2025-09-30 04:20:07,693 - INFO - 총 영상 수: 0
+2025-09-30 04:20:07,693 - INFO - 총 댓글 수: 0
+2025-09-30 04:20:07,694 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:20:07,695 - INFO - 사용된 API 할당량: 0
+2025-09-30 04:21:14,598 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 04:21:14,603 - INFO - YT2 크롤링 시작
+2025-09-30 04:21:14,604 - INFO - 영상 카테고리 수집 중...
+2025-09-30 04:21:14,821 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 04:21:14,822 - ERROR - YouTube API 할당량 초과
+2025-09-30 04:21:14,822 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 04:21:14,823 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 04:21:14,824 - INFO - === 크롤링 결과 ===
+2025-09-30 04:21:14,824 - INFO - 총 영상 수: 0
+2025-09-30 04:21:14,825 - INFO - 총 댓글 수: 0
+2025-09-30 04:21:14,826 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 04:21:14,826 - INFO - 사용된 API 할당량: 0
