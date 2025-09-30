@@ -1311,13 +1311,13 @@ async def health_check():
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1")
-        
+
         # OpenSearch 연결 확인
         OS_CLIENT.ping()
-        
+
         # Redis 연결 확인
         REDIS_CLIENT.ping()
-        
+
         return {
             "status": "healthy",
             "database": "connected",
@@ -1338,7 +1338,7 @@ async def get_stats():
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         (SELECT COUNT(*) FROM yt2.channels) as total_channels,
                         (SELECT COUNT(*) FROM yt2.videos) as total_videos,
                         (SELECT COUNT(*) FROM yt2.comments) as total_comments,
@@ -1347,9 +1347,9 @@ async def get_stats():
                         (SELECT COUNT(*) FROM yt2.videos WHERE created_at >= NOW() - INTERVAL '7 days') as videos_last_7d
                 """
                 )
-                
+
                 stats = cur.fetchone()
-                
+
                 return StatsResponse(
                     total_channels=stats[0],
                     total_videos=stats[1],
@@ -1376,7 +1376,7 @@ async def search_videos(
 
     # 페이지 기반 오프셋 계산
     actual_offset = (page - 1) * limit if page > 0 else offset
-    
+
     try:
         # 캐시 확인
         cache_key = f"search:{q}:{limit}:{page}:{algorithm}"
@@ -1384,7 +1384,7 @@ async def search_videos(
         if cached_result:
             logger.info(f"캐시에서 결과 반환: {q} (알고리즘: {algorithm})")
             return json.loads(cached_result)
-        
+
         with get_db_connection() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 search_term = f"%{q}%"
@@ -1393,7 +1393,7 @@ async def search_videos(
                 videos, total_count = execute_search_algorithm(
                     algorithm, cur, search_term, limit, actual_offset
                 )
-                
+
                 # 결과 변환
                 video_responses = []
                 for video in videos:
@@ -1413,7 +1413,7 @@ async def search_videos(
                             comment_count=video["comment_count"] or 0,
                             tags=video["tags"] or [],
                             thumbnails=video["thumbnails"] or {},
-                        # 추가된 필드들
+                            # 추가된 필드들
                             privacy_status=video.get("privacy_status"),
                             license=video.get("license"),
                             embeddable=video.get("embeddable"),
@@ -1429,7 +1429,7 @@ async def search_videos(
                             relevant_topic_ids=video.get("relevant_topic_ids") or [],
                         )
                     )
-                
+
                 search_time = (datetime.now() - start_time).total_seconds()
                 total_pages = (total_count + limit - 1) // limit  # 올림 계산
 
@@ -1445,7 +1445,7 @@ async def search_videos(
                     ai_insight = generate_search_insight(
                         q, video_titles, video_descriptions
                     )
-                
+
                 result = SearchResponse(
                     videos=video_responses,
                     total_count=total_count,
@@ -1454,17 +1454,17 @@ async def search_videos(
                     search_time=search_time,
                     ai_insight=ai_insight,
                 )
-                
+
                 # 캐시 저장 (5분)
                 REDIS_CLIENT.setex(
                     cache_key, 300, json.dumps(result.dict(), default=str)
                 )
-                
+
                 # 검색 로그 저장
                 log_search(q, len(video_responses), search_time)
-                
+
                 return result
-                
+
     except Exception as e:
         logger.error(f"검색 실패: {e}")
         raise HTTPException(status_code=500, detail=f"검색 실패: {str(e)}")
@@ -1568,7 +1568,7 @@ async def get_video_detail(video_id: str):
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         v.video_yid as id,
                         v.title,
                         v.description,
@@ -1586,13 +1586,13 @@ async def get_video_detail(video_id: str):
                 """,
                     (video_id,),
                 )
-                
+
                 video = cur.fetchone()
                 if not video:
                     raise HTTPException(
                         status_code=404, detail="영상을 찾을 수 없습니다"
                     )
-                
+
                 return {
                     "id": video["id"],
                     "title": video["title"],
@@ -1612,7 +1612,7 @@ async def get_video_detail(video_id: str):
                         "statistics": video["channel_statistics"],
                     },
                 }
-                
+
     except HTTPException:
         raise
     except Exception as e:
@@ -1632,7 +1632,7 @@ async def get_channels(
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         c.channel_yid as id,
                         c.title,
                         c.description,
@@ -1647,9 +1647,9 @@ async def get_channels(
                 """,
                     (limit, offset),
                 )
-                
+
                 channels = cur.fetchall()
-                
+
                 return [
                     {
                         "id": channel["id"],
@@ -1661,7 +1661,7 @@ async def get_channels(
                     }
                     for channel in channels
                 ]
-                
+
     except Exception as e:
         logger.error(f"채널 목록 조회 실패: {e}")
         raise HTTPException(status_code=500, detail=f"채널 목록 조회 실패: {str(e)}")
@@ -1680,7 +1680,7 @@ async def get_playlists(
                 if channel_id:
                     cur.execute(
                         """
-                        SELECT 
+                        SELECT
                             p.playlist_yid as id,
                             p.title,
                             p.description,
@@ -1700,7 +1700,7 @@ async def get_playlists(
                 else:
                     cur.execute(
                         """
-                        SELECT 
+                        SELECT
                             p.playlist_yid as id,
                             p.title,
                             p.description,
@@ -1716,9 +1716,9 @@ async def get_playlists(
                     """,
                         (limit, offset),
                     )
-                
+
                 playlists = cur.fetchall()
-                
+
                 return [
                     {
                         "id": playlist["id"],
@@ -1732,7 +1732,7 @@ async def get_playlists(
                     }
                     for playlist in playlists
                 ]
-                
+
     except Exception as e:
         logger.error(f"재생목록 목록 조회 실패: {e}")
         raise HTTPException(
@@ -1750,7 +1750,7 @@ async def get_playlist_items(
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         pi.playlist_item_yid as id,
                         pi.position,
                         pi.title,
@@ -1771,9 +1771,9 @@ async def get_playlist_items(
                 """,
                     (playlist_id, limit, offset),
                 )
-                
+
                 items = cur.fetchall()
-                
+
                 return [
                     {
                         "id": item["id"],
@@ -1793,7 +1793,7 @@ async def get_playlist_items(
                     }
                     for item in items
                 ]
-                
+
     except Exception as e:
         logger.error(f"재생목록 아이템 조회 실패: {e}")
         raise HTTPException(
@@ -1809,7 +1809,7 @@ async def get_video_captions(video_id: str):
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         caption_yid as id,
                         language,
                         name,
@@ -1829,9 +1829,9 @@ async def get_video_captions(video_id: str):
                 """,
                     (video_id,),
                 )
-                
+
                 captions = cur.fetchall()
-                
+
                 return [
                     {
                         "id": caption["id"],
@@ -1852,7 +1852,7 @@ async def get_video_captions(video_id: str):
                     }
                     for caption in captions
                 ]
-                
+
     except Exception as e:
         logger.error(f"영상 자막 조회 실패: {e}")
         raise HTTPException(status_code=500, detail=f"영상 자막 조회 실패: {str(e)}")
@@ -1866,7 +1866,7 @@ async def get_video_categories():
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT 
+                    SELECT
                         category_yid as id,
                         title,
                         assignable,
@@ -1875,9 +1875,9 @@ async def get_video_categories():
                     ORDER BY category_yid
                 """
                 )
-                
+
                 categories = cur.fetchall()
-                
+
                 return [
                     {
                         "id": category["id"],
@@ -1887,7 +1887,7 @@ async def get_video_categories():
                     }
                     for category in categories
                 ]
-                
+
     except Exception as e:
         logger.error(f"영상 카테고리 조회 실패: {e}")
         raise HTTPException(
