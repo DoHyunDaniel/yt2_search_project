@@ -489,7 +489,7 @@ def hybrid_search(cur, search_term: str, limit: int, offset: int) -> tuple:
                 )
 
         # 결과 합치기 및 중복 제거
-        video_scores = {}
+        video_scores: dict[str, float] = {}
 
         # TF-IDF 결과에 점수 부여 (0.4 가중치)
         for i, video in enumerate(tfidf_videos):
@@ -743,7 +743,7 @@ def generate_video_description(
     video_title: str,
     video_description: str = "",
     channel_name: str = "",
-    video_id: str = None,
+    video_id: Optional[str] = None,
 ) -> str:
     """비디오에 대한 AI 설명 생성 (캐싱 + 비용 최적화)"""
     try:
@@ -1087,7 +1087,7 @@ def get_content_based_recommendations(
     return recommendations
 
 
-def get_youtube_video_info(video_id: str) -> dict:
+def get_youtube_video_info(video_id: str) -> Optional[dict]:
     """YouTube API를 통해 비디오 정보 조회"""
     try:
         from googleapiclient.discovery import build
