@@ -13565,3 +13565,39 @@
 2025-09-30 03:36:26,984 - INFO - 총 댓글 수: 0
 2025-09-30 03:36:26,985 - INFO - 성공적으로 저장된 영상: 0
 2025-09-30 03:36:26,985 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:37:34,014 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:37:34,020 - INFO - YT2 크롤링 시작
+2025-09-30 03:37:34,021 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:37:34,228 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:37:34,229 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:37:34,230 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:37:34,231 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:37:34,232 - INFO - === 크롤링 결과 ===
+2025-09-30 03:37:34,232 - INFO - 총 영상 수: 0
+2025-09-30 03:37:34,233 - INFO - 총 댓글 수: 0
+2025-09-30 03:37:34,233 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:37:34,234 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:38:40,991 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:38:40,997 - INFO - YT2 크롤링 시작
+2025-09-30 03:38:40,998 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:38:41,296 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:38:41,297 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:38:41,297 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:38:41,298 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:38:41,298 - INFO - === 크롤링 결과 ===
+2025-09-30 03:38:41,298 - INFO - 총 영상 수: 0
+2025-09-30 03:38:41,299 - INFO - 총 댓글 수: 0
+2025-09-30 03:38:41,299 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:38:41,300 - INFO - 사용된 API 할당량: 0
+2025-09-30 03:39:48,133 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-09-30 03:39:48,138 - INFO - YT2 크롤링 시작
+2025-09-30 03:39:48,139 - INFO - 영상 카테고리 수집 중...
+2025-09-30 03:39:48,371 - WARNING - Encountered 403 Forbidden with reason "quotaExceeded"
+2025-09-30 03:39:48,371 - ERROR - YouTube API 할당량 초과
+2025-09-30 03:39:48,372 - WARNING - API 할당량 초과로 크롤링 중단
+2025-09-30 03:39:48,372 - INFO - 크롤링 완료: {'total_videos': 0, 'total_comments': 0, 'successful_saves': 0, 'quota_used': 0}
+2025-09-30 03:39:48,372 - INFO - === 크롤링 결과 ===
+2025-09-30 03:39:48,373 - INFO - 총 영상 수: 0
+2025-09-30 03:39:48,373 - INFO - 총 댓글 수: 0
+2025-09-30 03:39:48,373 - INFO - 성공적으로 저장된 영상: 0
+2025-09-30 03:39:48,374 - INFO - 사용된 API 할당량: 0
